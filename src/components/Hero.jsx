@@ -1,0 +1,74 @@
+// --- Main HeroSection Component ---
+// Orchestrates HeroContent and BookStack.
+import React from 'react';
+import { motion } from 'framer-motion';
+import HeroContent from "../components/Hero-ui/HeroContent"
+import BookStack from "../components/Hero-ui/BookStack"
+
+
+const Hero = () => {
+  // Define animation variants for text elements (left column)
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut",
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const childTextVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  // Define the static properties for each visual slot on the stack
+  const slotPositions = [
+    { top: '0px', left: '0px', rotate: '0deg', zIndex: 30 },
+    { top: '25px', left: '20px', rotate: '-5deg', zIndex: 20 },
+    { top: '50px', left: '40px', rotate: '-10deg', zIndex: 10 }
+  ];
+
+  // Data for the three books, including title and author
+  const bookData = [
+    { id: 'book1', title: 'The Lorem Ipsum', author: 'A. Bookman', src: "https://m.media-amazon.com/images/I/81l3rZK4lnL._SY385_.jpg", alt: "Book cover: The Librarian" },
+    { id: 'book2', title: 'Curious Tales', author: 'B. Storyteller', src: "https://m.media-amazon.com/images/I/41T7PTxb+6L._SY445_SX342_.jpg", alt: "Book cover: Curious Tales" },
+    { id: 'book3', title: 'Digital Dreams', author: 'C. Reader', src: "https://m.media-amazon.com/images/I/41FKKgpdjwL._SY445_SX342_.jpg", alt: "Book cover: Digital Dreams" },
+  ];
+
+  // Define variants for the book stack container, specifically for its initial appearance
+  const bookStackContainerVariants = {
+    hidden: { opacity: 0, y: 50, rotate: -10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      rotate: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+        staggerChildren: 0.1,
+        when: "beforeChildren"
+      }
+    }
+  };
+
+  return (
+    <section className="min-h-screen bg-gray-50 flex items-center justify-center py-12 md:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="max-w-7xl mx-auto md:flex md:items-center md:space-x-12">
+        <HeroContent textVariants={textVariants} childTextVariants={childTextVariants} />
+        <BookStack
+          bookData={bookData}
+          slotPositions={slotPositions}
+          bookStackContainerVariants={bookStackContainerVariants}
+        />
+      </div>
+    </section>
+  );
+};
+
+export default Hero;
