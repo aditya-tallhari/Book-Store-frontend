@@ -19,6 +19,14 @@ const Navbar = () => {
       link: "/all-books",
     },
     {
+      title: "Explore",
+      link: "/explore",
+    },
+    {
+      title: "Shop",
+      link: "/shop",
+    },
+    {
       title: "Cart",
       link: "/cart",
     },

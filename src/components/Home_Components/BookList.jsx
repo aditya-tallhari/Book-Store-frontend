@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { getAllBooks } from "../lib/api/books";
+import { getAllBooks } from "../../lib/api/books";
 import BookCard from "./BookCard";
+import LoaderSVG from "../Loader/Loader";
 
 const BookList = () => {
   const [books, setBooks] = useState([]);
@@ -45,8 +46,9 @@ const BookList = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-10">
-        <p className="text-lg text-gray-700">Loading books...</p>
+      <div className="flex flex-col justify-center items-center py-10">
+        <LoaderSVG size={64} color="#6366F1" /> {/* Your custom SVG loader */}
+        <p className="mt-4 text-lg text-gray-700">Loading Books...</p>
       </div>
     );
   }
@@ -81,23 +83,28 @@ const BookList = () => {
         onScroll={handleScroll}
         className="flex overflow-x-auto snap-x snap-mandatory pb-6 space-x-6 md:space-x-8 lg:space-x-10 no-scrollbar"
       >
-        {books.map((book) => (
-          <div
-            key={book._id}
-            className="flex-shrink-0 w-60 sm:w-64 md:w-72 snap-center"
-          >
-            <BookCard
-              book={{
-                image: book.imageUrl,
-                title: book.title,
-                price: book.price,
-                author: book.author,
-                language: book.language,
-                description: book.desc,
-              }}
-            />
-          </div>
-        ))}
+        {books.map((book) => {
+          console.log("Book from API in list component:", book); // <-- ADD THIS LINE
+          return (
+            <div
+              key={book._id}
+              className="flex-shrink-0 w-60 sm:w-64 md:w-72 snap-center"
+            >
+              <BookCard
+                book={{
+                  _id: book._id, // Ensure this is correctly mapping from your API response
+                  imageUrl: book.imageUrl,
+                  title: book.title,
+                  price: book.price,
+                  author: book.author,
+                  rating: book.rating,
+                  language: book.language,
+                  description: book.description,
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* Dots pagination */}

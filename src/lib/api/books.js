@@ -19,3 +19,13 @@ export const getRecentBooks=async()=>{
     return []; // fallback to empty array on error
     }
 }
+
+export const getBookById = async (id) => {
+  try {
+    const res = await axiosInstance.get(`/book/get-by-id/${id}`);
+    return res?.data?.data || null; // null instead of [] since it's a single book
+  } catch (error) {
+    console.log("Error in Fetching the Book", error);
+    return null;
+  }
+};

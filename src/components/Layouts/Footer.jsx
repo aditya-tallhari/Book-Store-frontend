@@ -2,13 +2,13 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-gray-300 py-12 px-4 sm:px-6 lg:px-8"> {/* Changed to gray-900 for deeper background */}
+    <footer className="bg-gray-900 text-gray-300 py-12 px-4 sm:px-6 lg:px-8 m-0">
       <div className="max-w-7xl mx-auto">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Books Section */}
           <div>
-            <h3 className="text-xl font-bold text-white mb-4">BookHeaven</h3> {/* Updated title */}
+            <h3 className="text-xl font-bold text-white mb-4">BookHeaven</h3>
             <p className="text-gray-400 text-sm leading-relaxed">
               Books Delivered. Imagination Unlimited. Your gateway to an endless library.
             </p>
@@ -65,13 +65,13 @@ const Footer = () => {
           {/* We Accept Section */}
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">We Accept</h3>
-            <div className="flex gap-3 flex-wrap"> {/* Added flex-wrap for small screens */}
+            <div className="flex gap-3 flex-wrap">
               {/* Visa */}
               <div className="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-bold shadow">
                 VISA
               </div>
               {/* Mastercard */}
-              <div className="bg-pink-600 text-white px-3 py-1 rounded text-xs font-bold shadow"> {/* Changed to pink for MasterCard feel */}
+              <div className="bg-pink-600 text-white px-3 py-1 rounded text-xs font-bold shadow">
                 MASTERCARD
               </div>
               {/* American Express */}
@@ -87,7 +87,7 @@ const Footer = () => {
         </div>
 
         {/* Divider Line */}
-        <div className="border-t border-gray-700 pt-6">
+        <div className="border-t border-gray-700 pt-5">
           {/* Copyright */}
           <div className="text-center">
             <p className="text-gray-400 text-sm">
@@ -99,6 +99,5 @@ const Footer = () => {
     </footer>
   );
 };
-
 
 export default Footer;

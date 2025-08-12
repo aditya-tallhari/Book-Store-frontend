@@ -2,8 +2,8 @@
 // Orchestrates HeroContent and BookStack.
 import React from 'react';
 import { motion } from 'framer-motion';
-import HeroContent from "../components/Hero-ui/HeroContent"
-import BookStack from "../components/Hero-ui/BookStack"
+import HeroContent from "./HeroContent"
+import BookStack from "./BookStack"
 
 
 const Hero = () => {

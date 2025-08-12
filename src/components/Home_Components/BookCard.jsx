@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { data, Link } from 'react-router-dom';
 const BookCard = ({ book }) => {
   // Placeholder image for books without an image URL
   const placeholderImage = "https://placehold.co/300x400/E0E0E0/333333?text=Book+Cover";
@@ -8,6 +8,8 @@ const BookCard = ({ book }) => {
   const imageUrl = book.imageUrl || book.image || placeholderImage;
 
   return (
+    <>
+    <Link to={`view-details/${book._id}`}>
     <div className="bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden
                     hover:shadow-xl hover:border-indigo-400 transition-all duration-300
                     flex flex-col transform hover:-translate-y-1"> {/* Removed 'group' as hover popup is removed */}
@@ -60,6 +62,8 @@ const BookCard = ({ book }) => {
         </button>
       </div>
     </div>
+    </Link>
+    </>
   );
 };
 

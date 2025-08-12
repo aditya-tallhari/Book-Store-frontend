@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { getRecentBooks } from "../lib/api/books"; // Import the specific API for recent books
+import { getRecentBooks } from "../../lib/api/books"; // Import the specific API for recent books
 import BookCard from "./BookCard"; // Reuse the BookCard component
+import LoaderSVG from "../Loader/Loader"; // Corrected import path for LoaderSVG
 
 const NewReleases = () => {
   const [books, setBooks] = useState([]);
@@ -48,8 +49,9 @@ const NewReleases = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-10">
-        <p className="text-lg text-gray-700">Loading new releases...</p>
+      <div className="flex flex-col justify-center items-center py-10">
+        <LoaderSVG size={64} color="#6366F1" /> {/* Your custom SVG loader */}
+        <p className="mt-4 text-lg text-gray-700">Loading new releases...</p>
       </div>
     );
   }
@@ -81,8 +83,7 @@ const NewReleases = () => {
       {/* Scrollable Container for Books */}
       <div
         ref={scrollContainerRef}
-        className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory pb-6 space-x-6 md:space-x-8 lg:space-x-10"
- // Custom class to hide scrollbar (requires Tailwind plugin)
+        className="flex overflow-x-auto snap-x snap-mandatory pb-6 space-x-6 md:space-x-8 lg:space-x-10 no-scrollbar" // Custom class to hide scrollbar (requires Tailwind plugin)
         onScroll={handleScroll}
       >
         {books.map((book) => (
@@ -92,13 +93,14 @@ const NewReleases = () => {
           >
             <BookCard
               book={{
+                _id: book._id,
                 imageUrl: book.imageUrl,
                 title: book.title,
                 price: book.price,
                 author: book.author,
-                stock: book.stock,
+                rating: book.rating,
                 language: book.language,
-                description: book.desc,
+                description: book.description,
               }}
             />
           </div>

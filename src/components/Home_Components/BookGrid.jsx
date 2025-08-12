@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { getAllBooks } from '../lib/api/books'; // Assuming this API service provides books with image URLs
+import { getAllBooks } from '../../lib/api/books'; // Assuming this API service provides books with image URLs
+import LoaderSVG from "../Loader/Loader"; // Import the LoaderSVG component
 
 const BookGrid = () => {
   const [bookImages, setBookImages] = useState([]);
@@ -31,8 +32,9 @@ const BookGrid = () => {
 
   if (loading) {
     return (
-      <div className="md:w-1/2 flex justify-center p-4 items-center">
-        <p className="text-gray-700">Loading book covers...</p>
+      <div className="md:w-1/2 flex flex-col justify-center items-center p-4">
+        <LoaderSVG size={64} color="#6366F1" /> {/* Your custom SVG loader */}
+        <p className="mt-4 text-gray-700">Loading book covers...</p>
       </div>
     );
   }
