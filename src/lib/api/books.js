@@ -1,4 +1,4 @@
-import axiosInstance from "../axios";
+import axiosInstance from "../../lib/axios";
 
 export const getAllBooks = async () => {
   try {
@@ -6,7 +6,7 @@ export const getAllBooks = async () => {
     return res?.data?.data || []; // Always return an array
   } catch (error) {
     console.error("Error fetching books:", error);
-    return []; // fallback to empty array on error
+    return []; // fallback to empty array on erroar
   }
 };
 

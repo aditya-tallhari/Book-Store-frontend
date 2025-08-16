@@ -1,12 +1,13 @@
-// --- Main HeroSection Component ---
-// Orchestrates HeroContent and BookStack.
-import React from 'react';
+// --- Main HeroSection Component --- // Orchestrates HeroContent and BookStack.
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import HeroContent from "./HeroContent"
 import BookStack from "./BookStack"
 
-
 const Hero = () => {
+  // State to track current book order for auto-shuffling
+  const [currentBookOrder, setCurrentBookOrder] = useState([0, 1, 2]);
+
   // Define animation variants for text elements (left column)
   const textVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -57,6 +58,22 @@ const Hero = () => {
     }
   };
 
+  // Auto-shuffle functionality - runs every 1 second
+  useEffect(() => {
+    const shuffleInterval = setInterval(() => {
+      setCurrentBookOrder(prevOrder => {
+        // Move the top book (first element) to the bottom
+        const newOrder = [...prevOrder];
+        const topBook = newOrder.shift(); // Remove first element
+        newOrder.push(topBook); // Add it to the end
+        return newOrder;
+      });
+    }, 1000); // 1 second
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(shuffleInterval);
+  }, []);
+
   return (
     <section className="min-h-screen bg-gray-50 flex items-center justify-center py-12 md:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto md:flex md:items-center md:space-x-12">
@@ -65,6 +82,8 @@ const Hero = () => {
           bookData={bookData}
           slotPositions={slotPositions}
           bookStackContainerVariants={bookStackContainerVariants}
+          currentBookOrder={currentBookOrder}
+          autoShuffle={true}
         />
       </div>
     </section>
