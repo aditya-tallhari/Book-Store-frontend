@@ -55,7 +55,7 @@ const App = () => {
       </Route>
       
       <Route path="/view-details/:id" element={<MainLayout><ViewBookDetails /></MainLayout>} />
-      <Route path="all-books/view-details/:id" element={<MainLayout><ViewBookDetails /></MainLayout>} />
+      <Route path="/all-books/view-details/:id" element={<MainLayout><ViewBookDetails /></MainLayout>} />
       {/* Routes without Navbar + Footer */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />

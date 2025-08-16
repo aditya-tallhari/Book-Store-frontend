@@ -29,3 +29,88 @@ export const getBookById = async (id) => {
     return null;
   }
 };
+
+export const addBookToFavourite = async (bookId) => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id") || "mock-user-id",
+      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+      bookid: bookId,
+    };
+    
+    const response = await axiosInstance.put(
+      "/favourite/add-book-to-favourite", 
+      {}, 
+      { headers }
+    );
+    return response?.data || {};
+  } catch (error) {
+    console.error("Error adding book to favourites:", error);
+    throw error; // Re-throw to handle in component
+  }
+};
+
+export const addBookToCart = async (bookId) => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id") || "mock-user-id",
+      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+      bookid: bookId,
+    };
+    
+    const response = await axiosInstance.put(
+      "/cart/add-to-cart", 
+      {}, 
+      { headers }
+    );
+    return response?.data || {};
+  } catch (error) {
+    console.error("Error adding book to cart:", error);
+    throw error; // Re-throw to handle in component
+  }
+};
+
+export const getFavouriteBooks = async () => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id"),
+      authorization: `Bearer ${localStorage.getItem("token")}`,
+    };
+    
+    console.log("Fetching favourite books with headers:", headers);
+    
+    const response = await axiosInstance.get(
+      "/favourite/get-favourite-books",
+      { headers }
+    );
+    
+    console.log("Favourite books response:", response.data);
+    return response?.data?.favouriteBooks || [];
+    
+  } catch (error) {
+    console.error("Error fetching favourite books:", error);
+    console.error("Error response:", error.response?.data);
+    throw error;
+  }
+};
+
+export const removeBookFromFavourites = async (bookId) => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id") || "mock-user-id",
+      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+      bookid: bookId,
+    };
+
+    const response = await axiosInstance.put(
+      "/favourite/remove-book-from-favourite", 
+      {}, 
+      { headers }
+    );
+    return response?.data || {};
+
+  } catch (error) {
+    console.error("Error removing book from favourites:", error);
+    throw error; // Re-throw to handle in component
+  }
+}

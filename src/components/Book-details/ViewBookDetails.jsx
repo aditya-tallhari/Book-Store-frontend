@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom"; // To get the ID from the URL
-import { getBookById } from "../../lib/api/books"; // Import the API function
-import LoaderSVG from "../Loader/Loader"; // Adjust path if LoaderSVG is in 'components' directly
-import { motion } from "framer-motion"; // Import motion from framer-motion
-import { FaRegHeart } from "react-icons/fa"; // Import the heart icon
+import { useParams } from "react-router-dom";
+import { getBookById } from "../../lib/api/books";
+import { addBookToFavourite, addBookToCart } from "../../lib/api/books"; // Adjust import path as needed
+import LoaderSVG from "../Loader/Loader";
+import { motion } from "framer-motion";
+import { FaRegHeart } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { FaRegEdit } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
 
 export default function ViewBookDetail() {
-  const { id } = useParams(); // Get the book ID from the URL
+  const { id } = useParams();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,6 +18,36 @@ export default function ViewBookDetail() {
   const role = useSelector((state) => state.auth.role);
   console.log(isLoggedIn);
   console.log(role);
+
+  // Handle adding book to favourites
+  const handlefavourite = async () => {
+    try {
+      const response = await addBookToFavourite(id);
+      console.log(response.message);
+      // Success alert
+      alert(response.message || "Book added to favourites successfully!");
+    } catch (error) {
+      console.error("Error adding to favourites:", error);
+      // Error alert
+      const errorMessage = error.response?.data?.message || "Failed to add book to favourites. Please try again.";
+      alert(errorMessage);
+    }
+  };
+
+  // Handle adding book to cart
+  const handlecart = async () => {
+    try {
+      const response = await addBookToCart(id);
+      console.log(response.message);
+      // Success alert
+      alert(response.message || "Book added to cart successfully!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      // Error alert
+      const errorMessage = error.response?.data?.message || "Failed to add book to cart. Please try again.";
+      alert(errorMessage);
+    }
+  };
   
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -31,14 +62,14 @@ export default function ViewBookDetail() {
         setLoading(false);
       }
     };
-
-    if (id) { // Only fetch if ID is available
+    
+    if (id) {
       fetchBookDetails();
     } else {
       setLoading(false);
       setError("No book ID provided in URL.");
     }
-  }, [id]); // Re-fetch if ID changes
+  }, [id]);
 
   const placeholderImage = "https://placehold.co/400x600/E0E0E0/333333?text=Book+Cover";
 
@@ -51,20 +82,20 @@ export default function ViewBookDetail() {
       transition: {
         duration: 0.6,
         ease: "easeOut",
-        when: "beforeChildren", // Animate parent first
-        staggerChildren: 0.2 // Stagger children animations
+        when: "beforeChildren",
+        staggerChildren: 0.2
       }
     }
   };
 
   // Animation variants for image and details content
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 }, // Changed from x to y for better mobile experience
+    hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
   };
 
   const detailsVariants = {
-    hidden: { opacity: 0, y: 30 }, // Changed from x to y for better mobile experience
+    hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
   };
 
@@ -129,6 +160,7 @@ export default function ViewBookDetail() {
                     className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg text-red-500 hover:text-red-600 hover:bg-white transition-all duration-200"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={handlefavourite}
                   >
                     <FaRegHeart className="w-5 h-5" />
                   </motion.button>
@@ -242,10 +274,11 @@ export default function ViewBookDetail() {
                   className="flex flex-col sm:flex-row gap-4" 
                   variants={textChildVariants}
                 >
-                  <motion.button 
+                  <motion.button
                     className="flex-1 bg-indigo-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={handlecart}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13v6a1 1 0 001 1h8a1 1 0 001-1v-6M7 13H5.4M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
