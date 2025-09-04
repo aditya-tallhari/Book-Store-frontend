@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { authActions } from "../../store/auth"; // ✅ import Redux actions
 import { logoutUser } from "../../lib/api/user";
 import {
@@ -25,6 +25,7 @@ const SidebarLink = ({ to, icon, text }) => (
 const Sidebar = ({ data }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const role=useSelector((state)=>state.auth.role)
 
   const avatarSrc =
     data?.avatar || "https://placehold.co/150x150/E5E7EB/4B5563?text=User";
@@ -37,7 +38,7 @@ const Sidebar = ({ data }) => {
       // We still log out locally even if server fails
     }
     dispatch(authActions.logout()); // Clear Redux + localStorage
-    navigate("/login"); // Redirect to login page
+    navigate("/"); // Redirect to login page
   };
 
   return (
@@ -59,12 +60,16 @@ const Sidebar = ({ data }) => {
       <div className="w-full h-px bg-gray-200 my-6"></div>
 
       {/* Navigation */}
-      <nav className="flex flex-col w-full gap-2">
-        <SidebarLink to="/profile" icon={<UserCircle size={20} />} text="My Profile" />
-        <SidebarLink to="/profile/favourites" icon={<Star size={20} />} text="Favourites" />
+      {role==='user' && (<nav className="flex flex-col w-full gap-2">
+        <SidebarLink to="/profile" icon={<Star size={20} />} text="Favourites" />
         <SidebarLink to="/profile/orderHistory" icon={<History size={20} />} text="Order History" />
         <SidebarLink to="/profile/settings" icon={<Settings size={20} />} text="Settings" />
-      </nav>
+      </nav>)}
+
+      {role==='admin' && (<nav className="flex flex-col w-full gap-2">
+        <SidebarLink to="/profile" icon={<Star size={20} />} text="All Orders" />
+        <SidebarLink to="/profile/add-book" icon={<History size={20} />} text="Add Book" />
+      </nav>)}
 
       {/* Log Out Button */}
       <button

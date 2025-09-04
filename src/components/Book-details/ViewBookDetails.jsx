@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getBookById } from "../../lib/api/books";
-import { addBookToFavourite, addBookToCart } from "../../lib/api/books"; // Adjust import path as needed
+import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate
+import { getBookById, addBookToFavourite, addBookToCart, deleteBook } from "../../lib/api/books";
 import LoaderSVG from "../Loader/Loader";
 import { motion } from "framer-motion";
 import { FaRegHeart } from "react-icons/fa";
@@ -11,26 +10,50 @@ import { MdDeleteOutline } from "react-icons/md";
 
 export default function ViewBookDetail() {
   const { id } = useParams();
+  const navigate = useNavigate(); // Hook for navigation
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null); // State for user messages
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const role = useSelector((state) => state.auth.role);
-  console.log(isLoggedIn);
-  console.log(role);
+
+  // Animation variants for the main container
+  const containerVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+        when: "beforeChildren",
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  // Animation variants for image and details content
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
+  };
+
+  // Animation variants for individual text elements within details
+  const textChildVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  };
 
   // Handle adding book to favourites
   const handlefavourite = async () => {
     try {
       const response = await addBookToFavourite(id);
-      console.log(response.message);
-      // Success alert
-      alert(response.message || "Book added to favourites successfully!");
+      setMessage({ type: 'success', text: response.message || "Book added to favourites successfully!" });
     } catch (error) {
       console.error("Error adding to favourites:", error);
-      // Error alert
       const errorMessage = error.response?.data?.message || "Failed to add book to favourites. Please try again.";
-      alert(errorMessage);
+      setMessage({ type: 'error', text: errorMessage });
     }
   };
 
@@ -38,17 +61,36 @@ export default function ViewBookDetail() {
   const handlecart = async () => {
     try {
       const response = await addBookToCart(id);
-      console.log(response.message);
-      // Success alert
-      alert(response.message || "Book added to cart successfully!");
+      setMessage({ type: 'success', text: response.message || "Book added to cart successfully!" });
     } catch (error) {
       console.error("Error adding to cart:", error);
-      // Error alert
       const errorMessage = error.response?.data?.message || "Failed to add book to cart. Please try again.";
-      alert(errorMessage);
+      setMessage({ type: 'error', text: errorMessage });
     }
   };
-  
+
+  // Handle deleting the book (Admin only)
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this book?")) {
+      try {
+        await deleteBook(book._id);
+        setMessage({ type: 'success', text: "Book deleted successfully!" });
+        // Redirect to home page after a short delay
+        setTimeout(() => navigate('/all-books'), 1000);
+      } catch (err) {
+        console.error("Error deleting book:", err);
+        const errorMessage = err.response?.data?.message || "Failed to delete book. Please try again.";
+        setMessage({ type: 'error', text: errorMessage });
+      }
+    }
+  };
+
+  // Handle navigating to the edit page (Admin only)
+  const handleEdit = () => {
+    // Navigate to a new route for editing
+    navigate(`/updatebook/${book._id}`);
+  };
+
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
@@ -72,38 +114,6 @@ export default function ViewBookDetail() {
   }, [id]);
 
   const placeholderImage = "https://placehold.co/400x600/E0E0E0/333333?text=Book+Cover";
-
-  // Animation variants for the main container
-  const containerVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-        when: "beforeChildren",
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  // Animation variants for image and details content
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
-  };
-
-  const detailsVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
-  };
-
-  // Animation variants for individual text elements within details
-  const textChildVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
-  };
 
   if (loading) {
     return (
@@ -143,6 +153,16 @@ export default function ViewBookDetail() {
         animate="visible"
       >
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`p-4 text-center text-sm font-medium ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+            >
+              {message.text}
+            </motion.div>
+          )}
+          
           {/* Mobile-first layout that changes to side-by-side on larger screens */}
           <div className="flex flex-col lg:flex-row">
             
@@ -171,6 +191,7 @@ export default function ViewBookDetail() {
                       className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg text-blue-500 hover:text-blue-600 hover:bg-white transition-all duration-200"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
+                      onClick={handleEdit}
                     >
                       <FaRegEdit className="w-5 h-5" />
                     </motion.button>
@@ -178,6 +199,7 @@ export default function ViewBookDetail() {
                       className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg text-red-500 hover:text-red-600 hover:bg-white transition-all duration-200"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
+                      onClick={handleDelete}
                     >
                       <MdDeleteOutline className="w-5 h-5" />
                     </motion.button>
@@ -200,7 +222,7 @@ export default function ViewBookDetail() {
             {/* Details Section */}
             <motion.div
               className="lg:w-3/5 p-6 md:p-8 lg:p-10 flex flex-col justify-center"
-              variants={detailsVariants}
+              variants={itemVariants}
             >
               {/* Title and Author */}
               <motion.div variants={textChildVariants} className="mb-6">
@@ -301,10 +323,11 @@ export default function ViewBookDetail() {
                   className="flex flex-col sm:flex-row gap-4" 
                   variants={textChildVariants}
                 >
-                  <motion.button 
+                  <motion.button
                     className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={handleEdit}
                   >
                     <FaRegEdit className="w-5 h-5" />
                     <span>Edit Book</span>
@@ -314,6 +337,7 @@ export default function ViewBookDetail() {
                     className="flex-1 bg-red-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={handleDelete}
                   >
                     <MdDeleteOutline className="w-5 h-5" />
                     <span>Delete Book</span>

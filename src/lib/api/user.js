@@ -31,3 +31,82 @@ export const logoutUser = async () => {
   }
 };
 
+export const getUserInformation = async () => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id") || "mock-user-id",
+      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+    };
+
+    const response = await axiosInstance.get(
+      "/auth/get-user-information",
+      { headers }
+    );
+
+    return response?.data || {};
+  } catch (error) {
+    console.error("Error fetching user information:", error);
+    throw error; // Re-throw so components can handle it
+  }
+};
+
+export const updateAddress = async (newAddress) => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id") || "mock-user-id",
+      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+    };
+
+    const response = await axiosInstance.put(
+      "/auth/update-address",
+      { address: newAddress },
+      { headers }
+    );
+
+    return response?.data || {};
+  } catch (error) {
+    console.error("Error updating address:", error);
+    throw error;
+  }
+};
+
+// ✅ Change Password
+export const changePassword = async (oldPassword, newPassword) => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id") || "mock-user-id",
+      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+    };
+
+    const response = await axiosInstance.put(
+      "/auth/change-password",
+      { oldPassword, newPassword },
+      { headers }
+    );
+
+    return response?.data || {};
+  } catch (error) {
+    console.error("Error changing password:", error);
+    throw error;
+  }
+};
+
+// ✅ Delete Account
+export const deleteAccount = async () => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id") || "mock-user-id",
+      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+    };
+
+    const response = await axiosInstance.delete(
+      "/auth/delete-account",
+      { headers }
+    );
+
+    return response?.data || {};
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    throw error;
+  }
+};

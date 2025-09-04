@@ -15,6 +15,10 @@ import ViewBookDetails from "./components/Book-details/ViewBookDetails";
 import Favourite from "./pages/Favourite";
 import Orderhistory from "./pages/Orderhistory";
 import Setting from "./pages/Setting";
+import AllOrders from "./pages/AllOrders";
+import AddBook from "./pages/AddBook";
+import UpdateBook from "./pages/UpdateBook";
+
 
 // Layout wrapper for routes that need Navbar + Footer
 const MainLayout = ({ children }) => {
@@ -49,13 +53,15 @@ const App = () => {
       <Route path="/all-books" element={<MainLayout><Allbooks /></MainLayout>} />
       <Route path="/cart" element={<MainLayout><Cart /></MainLayout>} />
       <Route path="/profile" element={<MainLayout><Profile /></MainLayout>}>
-        <Route path="/profile/favourites" element={<Favourite/>}></Route>
+        {role==='user' ? <Route index  element={<Favourite/>}></Route>:<Route index  element={<AllOrders/>}></Route>}
+        {role==='admin' &&  <Route path="/profile/add-book" element={<AddBook/>}/>}
         <Route path="/profile/orderHistory" element={<Orderhistory/>}/>
         <Route path="/profile/settings" element={<Setting/>}/>
       </Route>
       
       <Route path="/view-details/:id" element={<MainLayout><ViewBookDetails /></MainLayout>} />
       <Route path="/all-books/view-details/:id" element={<MainLayout><ViewBookDetails /></MainLayout>} />
+      <Route path="/updatebook/:id" element={<UpdateBook/>}/>
       {/* Routes without Navbar + Footer */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
