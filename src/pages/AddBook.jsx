@@ -1,7 +1,8 @@
 import React, { useState, useRef } from "react";
-import { motion } from "framer-motion";
 import { addBook } from "../lib/api/books"; // Import the API function
-import LoaderSVG from "../components/Loader/Loader";; // Custom loader
+import LoaderSVG from "../components/Loader/Loader"; // Custom loader
+import { toast } from "react-toastify"; // Import toast
+import { motion } from "framer-motion";
 
 const AddBook = () => {
   const [formData, setFormData] = useState({
@@ -15,11 +16,9 @@ const AddBook = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(null); // null, true, false
-  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
-  
+
   // Animation variants for the form's overall container
   const formVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -51,28 +50,26 @@ const AddBook = () => {
   const validateForm = () => {
     const { title, author, price, desc, language, stock, image } = formData;
     if (!title || !author || !price || !desc || !language || !stock) {
-      setError("Please fill out all fields.");
+      toast.error("Please fill out all fields.");
       return false;
     }
     if (!image) {
-      setError("Please upload a book cover image.");
+      toast.error("Please upload a book cover image.");
       return false;
     }
     if (isNaN(Number(price)) || Number(price) <= 0) {
-        setError("Price must be a positive number.");
-        return false;
+      toast.error("Price must be a positive number.");
+      return false;
     }
     if (isNaN(Number(stock)) || Number(stock) < 0) {
-        setError("Stock cannot be a negative number.");
-        return false;
+      toast.error("Stock cannot be a negative number.");
+      return false;
     }
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
     
     if (!validateForm()) return;
     
@@ -91,14 +88,14 @@ const AddBook = () => {
 
     try {
       await addBook(data);
-      setSuccess("Book added successfully!");
+      toast.success("Book added successfully!");
       // Reset form
       setFormData({ title: "", author: "", price: "", desc: "", language: "", stock: "", image: null });
       setImagePreviewUrl(null);
       if(fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Failed to add book. Please try again.";
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -119,22 +116,22 @@ const AddBook = () => {
           <motion.div variants={itemVariants}>
             <p className="text-base font-medium text-gray-700 mb-2">Book Cover Image</p>
             <div className="flex items-center gap-4 flex-wrap">
-                <input 
-                    type="file" 
-                    id="book-image" 
-                    name="image" 
-                    accept="image/*" 
-                    onChange={handleFileChange} 
-                    className="hidden"
-                    ref={fileInputRef}
-                />
-                <label htmlFor="book-image" className="cursor-pointer bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors duration-200 rounded-md py-2 px-4 font-semibold text-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-4v5z" clipRule="evenodd" /></svg>
-                    <span>Upload Image</span>
-                </label>
-                {imagePreviewUrl && (
-                    <img src={imagePreviewUrl} alt="Preview" className="w-24 h-32 object-cover rounded-lg border-2 border-gray-200 shadow-sm" />
-                )}
+              <input 
+                type="file" 
+                id="book-image" 
+                name="image" 
+                accept="image/*" 
+                onChange={handleFileChange} 
+                className="hidden"
+                ref={fileInputRef}
+              />
+              <label htmlFor="book-image" className="cursor-pointer bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors duration-200 rounded-md py-2 px-4 font-semibold text-sm flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-4v5z" clipRule="evenodd" /></svg>
+                <span>Upload Image</span>
+              </label>
+              {imagePreviewUrl && (
+                <img src={imagePreviewUrl} alt="Preview" className="w-24 h-32 object-cover rounded-lg border-2 border-gray-200 shadow-sm" />
+              )}
             </div>
           </motion.div>
 
@@ -178,24 +175,6 @@ const AddBook = () => {
               <div className="flex justify-center">
                 <LoaderSVG size={40} color="#6366F1" />
               </div>
-            )}
-            {error && (
-              <motion.div
-                className="text-red-600 text-sm text-center font-medium bg-red-50 p-2 rounded-md"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {error}
-              </motion.div>
-            )}
-            {success && (
-              <motion.div
-                className="text-green-600 text-sm text-center font-medium bg-green-50 p-2 rounded-md"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {success}
-              </motion.div>
             )}
             <motion.button
               type="submit"

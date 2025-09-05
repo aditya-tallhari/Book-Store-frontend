@@ -4,19 +4,18 @@ import { useDispatch } from "react-redux";
 import { authActions } from "../store/auth";
 import { loginUser } from "../lib/api/user";
 import LoaderSVG from "../components/Loader/Loader"; // ✅ Import your Loader
+import { toast } from "react-toastify"; // Import toast
 
 const Login = () => {
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     const credentials = { email: emailOrUsername, password };
 
@@ -38,15 +37,14 @@ const Login = () => {
         );
 
         dispatch(authActions.changeRole(res.role));
-
+        toast.success("Login successful!");
         navigate("/");
       } else {
-        setError("Invalid credentials. Please try again.");
+        toast.error("Invalid credentials. Please try again.");
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Please try again."
-      );
+      const errorMessage = err.response?.data?.message || "Login failed. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -61,13 +59,6 @@ const Login = () => {
         <p className="text-gray-500 text-center mt-2">
           Sign in to your account
         </p>
-
-        {/* Error */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3 mt-4 text-center">
-            {error}
-          </div>
-        )}
 
         {/* Google Login */}
         <button

@@ -12,12 +12,12 @@ import {
   Info,
   X,
 } from "lucide-react";
+import { toast } from "react-toastify"; // Import toast
 
 const AllOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null); // ✅ state for popup
 
   const statusOptions = ["Order placed", "Out for Delivery", "Delivered", "Canceled"];
@@ -31,7 +31,6 @@ const AllOrders = () => {
       setLoading(true);
       const data = await getAllOrders();
       setOrders(data || []);
-      setMessage(null);
     } catch (err) {
       console.error("❌ Failed to fetch orders:", err);
       setError(err.response?.data?.message || "Failed to fetch orders");
@@ -41,21 +40,21 @@ const AllOrders = () => {
   };
 
   const handleStatusUpdate = async (orderId, newStatus) => {
-    try {
-      setMessage({ type: "info", text: "Updating order status..." });
-      await updateStatus(orderId, newStatus);
-      setMessage({
-        type: "success",
-        text: `Order #${orderId.slice(-6)} status updated to ${newStatus}.`,
-      });
-      fetchOrders();
-    } catch (err) {
+    toast.promise(
+      updateStatus(orderId, newStatus),
+      {
+        pending: "Updating order status...",
+        success: `Order #${orderId.slice(-6)} status updated to ${newStatus}.`,
+        error: "Failed to update status. Please try again.",
+      },
+      {
+        position: toast.POSITION.BOTTOM_RIGHT, // Customize toast position
+      }
+    ).then(() => {
+      fetchOrders(); // Refresh orders after successful update
+    }).catch(err => {
       console.error("❌ Failed to update status:", err);
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || "Failed to update status.",
-      });
-    }
+    });
   };
 
   const handleViewDetails = async (orderId) => {
@@ -64,10 +63,8 @@ const AllOrders = () => {
       setSelectedOrder(orderDetails); // ✅ open popup with details
     } catch (err) {
       console.error("❌ Failed to fetch order details:", err);
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || "Failed to fetch order details.",
-      });
+      const errorMessage = err.response?.data?.message || "Failed to fetch order details.";
+      toast.error(errorMessage);
     }
   };
 
@@ -159,23 +156,6 @@ const AllOrders = () => {
               <span className="text-gray-600 ml-2">Total Orders</span>
             </div>
           </div>
-
-          {/* Status update message */}
-          {message && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-xl text-center mb-6 font-medium ${
-                message.type === "success"
-                  ? "bg-green-100 text-green-700"
-                  : message.type === "error"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
-            >
-              {message.text}
-            </motion.div>
-          )}
 
           {/* Orders List */}
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">

@@ -1,30 +1,35 @@
-// components/Profile/OrderHistory.js
 import React, { useState, useEffect } from 'react';
 import { Package, Calendar, Eye, Clock, CheckCircle, Truck, Star, BookOpen } from 'lucide-react';
-import { getOrderHistory } from '../lib/api/books'; // Adjust import path as needed
+import { getOrderHistory } from '../lib/api/books';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
-
-  useEffect(() => {
-    fetchOrderHistory();
-  }, []);
+  const navigate = useNavigate();
 
   const fetchOrderHistory = async () => {
     try {
       setLoading(true);
       const response = await getOrderHistory();
       setOrders(response.data || []);
+      toast.dismiss(); // Dismiss any previous loading toasts
     } catch (error) {
       console.error('Error fetching order history:', error);
-      setError(error.response?.data?.message || 'Failed to fetch order history');
+      const errorMessage = error.response?.data?.message || 'Failed to fetch order history';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchOrderHistory();
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -116,7 +121,6 @@ const OrderHistory = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Order History</h1>
             <p className="text-gray-600">Track and manage your book orders</p>
           </div>
-
           {/* Empty State */}
           <div className="text-center py-12">
             <div className="relative mx-auto w-32 h-32 mb-6">
@@ -131,7 +135,7 @@ const OrderHistory = () => {
               You haven't placed any orders yet. Start shopping to see your order history here!
             </p>
             <button
-              onClick={() => window.location.href = '/all-books'}
+              onClick={() => navigate('/all-books')}
               className="group inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
             >
               <BookOpen className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />

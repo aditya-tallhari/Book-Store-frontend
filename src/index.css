@@ -96,6 +96,33 @@ html, body, #root {
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+:root {
+  /* Toastify custom variables */
+  --toastify-color-success: #4f46e5; /* Search button color */
+  --toastify-color-error: #4f46e5;
+  --toastify-color-warning: #4f46e5;
+  --toastify-color-info: #4f46e5;
+
+  /* Progress bar colors */
+  --toastify-color-progress-success: var(--toastify-color-success);
+  --toastify-color-progress-error: var(--toastify-color-error);
+  --toastify-color-progress-warning: var(--toastify-color-warning);
+  --toastify-color-progress-info: var(--toastify-color-info);
+
+  /* Toast size tweaks */
+  --toastify-toast-width: 380px;
+  --toastify-toast-min-height: 70px;
+  --toastify-toast-max-height: 100px;
+}
+
+.dark {
+  --toastify-color-success: #4f46e5;
+  --toastify-color-error: #4f46e5;
+  --toastify-color-warning: #4f46e5;
+  --toastify-color-info: #4f46e5;
+}
+
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

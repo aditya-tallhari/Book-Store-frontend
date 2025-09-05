@@ -8,11 +8,9 @@ import {
   deleteAccount,
 } from "../lib/api/user"; // Import API functions
 import { authActions } from "../store/auth"; // Import Redux actions
-// import { Loader2, LogOut, UserCircle } from "lucide-react"; // For loading spinners
 import { Loader2, LogOut, UserCircle, Settings, History } from "lucide-react";
-
 import LoaderSVG from "../components/Loader/Loader";
-
+import { toast } from "react-toastify"; // Import toast
 
 export default function Setting() {
   const navigate = useNavigate();
@@ -25,22 +23,16 @@ export default function Setting() {
   // Address State
   const [address, setAddress] = useState("");
   const [loadingAddress, setLoadingAddress] = useState(false);
-  const [addressSuccess, setAddressSuccess] = useState(null);
-  const [addressError, setAddressError] = useState(null);
 
   // Password State
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [loadingPassword, setLoadingPassword] = useState(false);
-  const [passwordSuccess, setPasswordSuccess] = useState(null);
-  const [passwordError, setPasswordError] = useState(null);
 
   // Delete Account State
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const [deleteError, setDeleteError] = useState(null);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-
 
   // Fetch User Information on mount
   useEffect(() => {
@@ -53,7 +45,9 @@ export default function Setting() {
         setAddress(data.address || ""); // Set initial address
       } catch (err) {
         console.error("Error fetching user data:", err);
-        setUserError(err.message || "Failed to load user information.");
+        const errorMessage = err.message || "Failed to load user information.";
+        setUserError(errorMessage);
+        toast.error(errorMessage);
         // If unauthorized, redirect to login
         if (err.response?.status === 401) {
           dispatch(authActions.logout());
@@ -71,14 +65,13 @@ export default function Setting() {
   const handleAddressUpdate = async (e) => {
     e.preventDefault();
     setLoadingAddress(true);
-    setAddressError(null);
-    setAddressSuccess(null);
     try {
       const response = await updateAddress(address);
-      setAddressSuccess(response.message);
+      toast.success(response.message);
     } catch (err) {
       console.error("Error updating address:", err);
-      setAddressError(err.message || "Failed to update address.");
+      const errorMessage = err.message || "Failed to update address.";
+      toast.error(errorMessage);
     } finally {
       setLoadingAddress(false);
     }
@@ -88,29 +81,28 @@ export default function Setting() {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setLoadingPassword(true);
-    setPasswordError(null);
-    setPasswordSuccess(null);
 
     if (newPassword !== confirmNewPassword) {
-      setPasswordError("New passwords do not match.");
+      toast.error("New passwords do not match.");
       setLoadingPassword(false);
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError("New password must be at least 6 characters.");
+      toast.error("New password must be at least 6 characters.");
       setLoadingPassword(false);
       return;
     }
 
     try {
       const response = await changePassword(oldPassword, newPassword);
-      setPasswordSuccess(response.message);
+      toast.success(response.message);
       setOldPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
     } catch (err) {
       console.error("Error changing password:", err);
-      setPasswordError(err.message || "Failed to change password.");
+      const errorMessage = err.message || "Failed to change password.";
+      toast.error(errorMessage);
     } finally {
       setLoadingPassword(false);
     }
@@ -124,15 +116,15 @@ export default function Setting() {
     }
 
     setLoadingDelete(true);
-    setDeleteError(null);
     try {
       await deleteAccount();
-      alert("Account deleted successfully!"); // Use alert as per previous component style
+      toast.success("Account deleted successfully!");
       dispatch(authActions.logout()); // Log out user locally
       navigate("/signup"); // Redirect to signup or home page
     } catch (err) {
       console.error("Error deleting account:", err);
-      setDeleteError(err.message || "Failed to delete account.");
+      const errorMessage = err.message || "Failed to delete account.";
+      toast.error(errorMessage);
     } finally {
       setLoadingDelete(false);
       setShowConfirmDelete(false); // Hide confirmation after attempt
@@ -214,8 +206,6 @@ export default function Setting() {
                 required
               />
             </div>
-            {addressError && <p className="text-red-600 text-sm">{addressError}</p>}
-            {addressSuccess && <p className="text-green-600 text-sm">{addressSuccess}</p>}
             <button
               type="submit"
               disabled={loadingAddress}
@@ -269,8 +259,6 @@ export default function Setting() {
                 required
               />
             </div>
-            {passwordError && <p className="text-red-600 text-sm">{passwordError}</p>}
-            {passwordSuccess && <p className="text-green-600 text-sm">{passwordSuccess}</p>}
             <button
               type="submit"
               disabled={loadingPassword}
@@ -290,14 +278,13 @@ export default function Setting() {
           <p className="text-red-700 mb-4">
             Permanently delete your account and all associated data. This action cannot be undone.
           </p>
-          {deleteError && <p className="text-red-600 text-sm mb-4">{deleteError}</p>}
           {!showConfirmDelete ? (
             <button
               onClick={handleDeleteAccount}
               disabled={loadingDelete}
               className="w-full sm:w-auto px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <Loader2 className={`w-5 h-5 ${loadingDelete ? 'animate-spin' : 'hidden'}`} />
+              {loadingDelete && <Loader2 className="animate-spin w-5 h-5" />}
               {loadingDelete ? "Deleting..." : "Delete Account"}
             </button>
           ) : (

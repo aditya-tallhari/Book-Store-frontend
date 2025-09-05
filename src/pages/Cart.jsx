@@ -1,8 +1,8 @@
-// pages/Cart.js
 import React, { useEffect, useState } from "react";
 import { getCartBooks, removeBookFromCart } from "../lib/api/books";
 import LoaderSVG from "../components/Loader/Loader";
 import CartCardGrid from "../components/Book-details/CartCardgrid";
+import { toast } from "react-toastify"; // Import toast for notifications
 
 const Cart = () => {
   const [cartBooks, setCartBooks] = useState([]);
@@ -10,63 +10,64 @@ const Cart = () => {
   const [error, setError] = useState(null);
   const [removingBookId, setRemovingBookId] = useState(null);
 
-  useEffect(() => {
-    const fetchCartBooks = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const userId = localStorage.getItem("id");
-        const token = localStorage.getItem("token");
-        
-        if (!userId || !token) {
-          setError("Please log in to view your cart.");
-          setCartBooks([]);
-          return;
-        }
-        
-        const books = await getCartBooks();
-        setCartBooks(Array.isArray(books) ? books : []);
-      } catch (err) {
-        let errorMessage = "Failed to load cart items.";
-        
-        if (err.response?.status === 401) {
-          errorMessage = "Please log in again to view your cart.";
-        } else if (err.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-        
-        setError(errorMessage);
+  const fetchCartBooks = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const userId = localStorage.getItem("id");
+      const token = localStorage.getItem("token");
+      
+      if (!userId || !token) {
+        setError("Please log in to view your cart.");
         setCartBooks([]);
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
+      
+      const books = await getCartBooks();
+      setCartBooks(Array.isArray(books) ? books : []);
+    } catch (err) {
+      let errorMessage = "Failed to load cart items.";
+      
+      if (err.response?.status === 401) {
+        errorMessage = "Please log in again to view your cart.";
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      setCartBooks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCartBooks();
   }, []);
 
   const handleRemoveFromCart = async (bookId) => {
-    try {w
+    try {
       setRemovingBookId(bookId);
       
       // Call the API to remove the book from cart
-      await removeBookFromCart(bookId);
+      const response = await removeBookFromCart(bookId);
       
       // Update the local state to remove the book immediately
       setCartBooks(prevBooks => 
         prevBooks.filter(book => book._id !== bookId && book.id !== bookId)
       );
       
-      // Optional: Show success message (you can add toast notification here)
-      console.log("Book removed from cart successfully");
+      // Show success message
+      toast.success(response.message || "Book removed from cart successfully!");
       
     } catch (error) {
       console.error("Error removing book from cart:", error);
       
-      // Optional: Show error message to user (you can add toast notification here)
-      alert(error.message || "Failed to remove book from cart. Please try again.");
+      // Show error message to user
+      const errorMessage = error.message || "Failed to remove book from cart. Please try again.";
+      toast.error(errorMessage);
       
     } finally {
       setRemovingBookId(null);
@@ -87,7 +88,7 @@ const Cart = () => {
         <h3 className="text-lg font-medium text-red-600 mb-2">Oops!</h3>
         <p className="text-gray-600 mb-6">{error}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={fetchCartBooks} // Better UX: retry fetching without a full page reload
           className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
         >
           Try Again

@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { updateBook, getBookById } from "../lib/api/books"; // Import update and fetch functions
 import LoaderSVG from "../components/Loader/Loader"; // Custom loader
+import { toast } from "react-toastify";
 
 const UpdateBook = () => {
   const { id } = useParams();
@@ -19,8 +20,7 @@ const UpdateBook = () => {
   });
 
   const [loading, setLoading] = useState(true);
-  const [success, setSuccess] = useState(null);
-  const [error, setError] = useState(null);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
   const fileInputRef = useRef(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 
@@ -44,19 +44,19 @@ const UpdateBook = () => {
         if (bookData) {
           // Populate the form with existing book data
           setFormData({
-            title: bookData.title,
-            author: bookData.author,
-            price: bookData.price,
-            desc: bookData.desc,
-            language: bookData.language,
-            stock: bookData.stock,
+            title: bookData.title || "",
+            author: bookData.author || "",
+            price: bookData.price || "",
+            desc: bookData.desc || "",
+            language: bookData.language || "",
+            stock: bookData.stock || "",
             image: null, // Don't pre-fill file input
           });
-          setImagePreviewUrl(bookData.imageUrl || bookData.image);
+          setImagePreviewUrl(bookData.imageUrl || bookData.image || "https://placehold.co/200x300/E0E0E0/333333?text=Book+Cover");
         }
       } catch (err) {
         const errorMessage = err.response?.data?.message || "Failed to fetch book data.";
-        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -65,7 +65,7 @@ const UpdateBook = () => {
       fetchBook();
     } else {
       setLoading(false);
-      setError("No book ID provided for update.");
+      toast.error("No book ID provided for update.");
     }
   }, [id]);
 
@@ -84,32 +84,30 @@ const UpdateBook = () => {
       setImagePreviewUrl(null);
     }
   };
-  
+
   const validateForm = () => {
     const { title, author, price, desc, language, stock } = formData;
     if (!title || !author || !price || !desc || !language || !stock) {
-      setError("Please fill out all fields.");
+      toast.error("Please fill out all fields.");
       return false;
     }
     if (isNaN(Number(price)) || Number(price) <= 0) {
-        setError("Price must be a positive number.");
-        return false;
+      toast.error("Price must be a positive number.");
+      return false;
     }
     if (isNaN(Number(stock)) || Number(stock) < 0) {
-        setError("Stock cannot be a negative number.");
-        return false;
+      toast.error("Stock cannot be a negative number.");
+      return false;
     }
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    
+
     if (!validateForm()) return;
-    
-    setLoading(true);
+
+    setLoadingUpdate(true);
 
     const data = new FormData();
     data.append("title", formData.title);
@@ -124,14 +122,14 @@ const UpdateBook = () => {
 
     try {
       await updateBook(id, data);
-      setSuccess("Book updated successfully!");
+      toast.success("Book updated successfully!");
       // Optionally navigate back after update
       setTimeout(() => navigate(`/view-details/${id}`), 2000);
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Failed to update book. Please try again.";
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
-      setLoading(false);
+      setLoadingUpdate(false);
     }
   };
 
@@ -153,27 +151,26 @@ const UpdateBook = () => {
       >
         <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Update Book</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
-
           {/* Image Upload */}
           <motion.div variants={itemVariants}>
             <p className="text-base font-medium text-gray-700 mb-2">Book Cover Image</p>
             <div className="flex items-center gap-4 flex-wrap">
-                <input 
-                    type="file" 
-                    id="book-image" 
-                    name="image" 
-                    accept="image/*" 
-                    onChange={handleFileChange} 
-                    className="hidden"
-                    ref={fileInputRef}
-                />
-                <label htmlFor="book-image" className="cursor-pointer bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors duration-200 rounded-md py-2 px-4 font-semibold text-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-4v5z" clipRule="evenodd" /></svg>
-                    <span>Upload New Image</span>
-                </label>
-                {imagePreviewUrl && (
-                    <img src={imagePreviewUrl} alt="Preview" className="w-24 h-32 object-cover rounded-lg border-2 border-gray-200 shadow-sm" />
-                )}
+              <input
+                type="file"
+                id="book-image"
+                name="image"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+                ref={fileInputRef}
+              />
+              <label htmlFor="book-image" className="cursor-pointer bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors duration-200 rounded-md py-2 px-4 font-semibold text-sm flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 4-4v5z" clipRule="evenodd" /></svg>
+                <span>Upload New Image</span>
+              </label>
+              {imagePreviewUrl && (
+                <img src={imagePreviewUrl} alt="Preview" className="w-24 h-32 object-cover rounded-lg border-2 border-gray-200 shadow-sm" />
+              )}
             </div>
           </motion.div>
 
@@ -213,37 +210,19 @@ const UpdateBook = () => {
 
           {/* Submit Button & Messages */}
           <motion.div variants={itemVariants} className="flex flex-col gap-4">
-            {loading && (
+            {loadingUpdate && (
               <div className="flex justify-center">
                 <LoaderSVG size={40} color="#6366F1" />
               </div>
-            )}
-            {error && (
-              <motion.div
-                className="text-red-600 text-sm text-center font-medium bg-red-50 p-2 rounded-md"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {error}
-              </motion.div>
-            )}
-            {success && (
-              <motion.div
-                className="text-green-600 text-sm text-center font-medium bg-green-50 p-2 rounded-md"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {success}
-              </motion.div>
             )}
             <motion.button
               type="submit"
               className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition disabled:bg-indigo-300 disabled:cursor-not-allowed"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              disabled={loading}
+              disabled={loadingUpdate}
             >
-              {loading ? "Updating..." : "Update Book"}
+              {loadingUpdate ? "Updating..." : "Update Book"}
             </motion.button>
           </motion.div>
         </form>
