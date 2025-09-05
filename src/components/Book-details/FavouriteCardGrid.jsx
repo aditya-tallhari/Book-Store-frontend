@@ -1,7 +1,11 @@
 import React from "react";
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import BookCard from "../Home_Components/BookCard";
 
 const FavouriteCardGrid = ({ favouriteBooks, onRemoveFromFavourites, removingBookId }) => {
+  const navigate = useNavigate();
+
   if (favouriteBooks.length === 0) {
     // Empty State
     return (
@@ -20,7 +24,7 @@ const FavouriteCardGrid = ({ favouriteBooks, onRemoveFromFavourites, removingBoo
             see them here!
           </p>
           <button
-            onClick={() => (window.location.href = "/all-books")}
+            onClick={() => navigate("/all-books")}
             className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
           >
             <svg
@@ -46,6 +50,8 @@ const FavouriteCardGrid = ({ favouriteBooks, onRemoveFromFavourites, removingBoo
   const handleRemoveFromFavourites = (bookId) => {
     if (onRemoveFromFavourites) {
       onRemoveFromFavourites(bookId);
+      // Display a toast notification on successful removal
+      toast.info("Book removed from favourites!");
     }
   };
 

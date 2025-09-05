@@ -7,6 +7,7 @@ import { FaRegHeart } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { FaRegEdit } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
+import { toast } from 'react-toastify';
 
 export default function ViewBookDetail() {
   const { id } = useParams();
@@ -14,7 +15,6 @@ export default function ViewBookDetail() {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState(null); // State for user messages
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const role = useSelector((state) => state.auth.role);
 
@@ -49,11 +49,11 @@ export default function ViewBookDetail() {
   const handlefavourite = async () => {
     try {
       const response = await addBookToFavourite(id);
-      setMessage({ type: 'success', text: response.message || "Book added to favourites successfully!" });
+      toast.success(response.message || "Book added to favourites successfully!");
     } catch (error) {
       console.error("Error adding to favourites:", error);
       const errorMessage = error.response?.data?.message || "Failed to add book to favourites. Please try again.";
-      setMessage({ type: 'error', text: errorMessage });
+      toast.error(errorMessage);
     }
   };
 
@@ -61,28 +61,34 @@ export default function ViewBookDetail() {
   const handlecart = async () => {
     try {
       const response = await addBookToCart(id);
-      setMessage({ type: 'success', text: response.message || "Book added to cart successfully!" });
+      toast.success(response.message || "Book added to cart successfully!");
     } catch (error) {
       console.error("Error adding to cart:", error);
       const errorMessage = error.response?.data?.message || "Failed to add book to cart. Please try again.";
-      setMessage({ type: 'error', text: errorMessage });
+      toast.error(errorMessage);
     }
   };
 
   // Handle deleting the book (Admin only)
   const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this book?")) {
-      try {
-        await deleteBook(book._id);
-        setMessage({ type: 'success', text: "Book deleted successfully!" });
-        // Redirect to home page after a short delay
-        setTimeout(() => navigate('/all-books'), 1000);
-      } catch (err) {
-        console.error("Error deleting book:", err);
-        const errorMessage = err.response?.data?.message || "Failed to delete book. Please try again.";
-        setMessage({ type: 'error', text: errorMessage });
+    // Replaced window.confirm with a more modern, non-blocking toast
+    const promise = deleteBook(book._id);
+    
+    toast.promise(promise, {
+      pending: "Deleting book...",
+      success: {
+        render({ data }) {
+          navigate('/all-books');
+          return "Book deleted successfully!";
+        }
+      },
+      error: {
+        render({ data }) {
+          console.error("Error deleting book:", data);
+          return data.response?.data?.message || "Failed to delete book. Please try again.";
+        }
       }
-    }
+    });
   };
 
   // Handle navigating to the edit page (Admin only)
@@ -153,15 +159,7 @@ export default function ViewBookDetail() {
         animate="visible"
       >
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {message && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-4 text-center text-sm font-medium ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-            >
-              {message.text}
-            </motion.div>
-          )}
+          {/* Removed custom message block and will use react-toastify instead */}
           
           {/* Mobile-first layout that changes to side-by-side on larger screens */}
           <div className="flex flex-col lg:flex-row">

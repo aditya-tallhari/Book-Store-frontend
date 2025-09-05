@@ -1,3 +1,6 @@
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,7 +23,7 @@ import AddBook from "./pages/AddBook";
 import UpdateBook from "./pages/UpdateBook";
 
 
-// Layout wrapper for routes that need Navbar + Footer
+// A layout wrapper for routes that need Navbar + Footer
 const MainLayout = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -35,6 +38,9 @@ const App = () => {
   const dispatch = useDispatch();
   const role = useSelector((state) => state.auth.role);
 
+  // Note: Using localStorage is fine for simple use cases, but for a production application,
+  // it's generally better to use more secure methods like a secure cookie or a dedicated
+  // authentication library.
   useEffect(() => {
     if (
       localStorage.getItem("id") &&
@@ -47,25 +53,43 @@ const App = () => {
   }, [dispatch]);
 
   return (
-    <Routes>
-      {/* Routes with Navbar + Footer */}
-      <Route path="/" element={<MainLayout><Home /></MainLayout>} />
-      <Route path="/all-books" element={<MainLayout><Allbooks /></MainLayout>} />
-      <Route path="/cart" element={<MainLayout><Cart /></MainLayout>} />
-      <Route path="/profile" element={<MainLayout><Profile /></MainLayout>}>
-        {role==='user' ? <Route index  element={<Favourite/>}></Route>:<Route index  element={<AllOrders/>}></Route>}
-        {role==='admin' &&  <Route path="/profile/add-book" element={<AddBook/>}/>}
-        <Route path="/profile/orderHistory" element={<Orderhistory/>}/>
-        <Route path="/profile/settings" element={<Setting/>}/>
-      </Route>
+    <>
+      <Routes>
+        {/* Routes with Navbar + Footer */}
+        <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+        <Route path="/all-books" element={<MainLayout><Allbooks /></MainLayout>} />
+        <Route path="/cart" element={<MainLayout><Cart /></MainLayout>} />
+        <Route path="/profile" element={<MainLayout><Profile /></MainLayout>}>
+          {/* Nested routes are defined here */}
+          {role === 'user' ? <Route index element={<Favourite/>} /> : <Route index element={<AllOrders/>} />}
+          {role === 'admin' && <Route path="/profile/add-book" element={<AddBook />} />}
+          <Route path="/profile/orderHistory" element={<Orderhistory />} />
+          <Route path="/profile/settings" element={<Setting />} />
+        </Route>
+        
+        {/* Specific routes with shared layout */}
+        <Route path="/view-details/:id" element={<MainLayout><ViewBookDetails /></MainLayout>} />
+        <Route path="/all-books/view-details/:id" element={<MainLayout><ViewBookDetails /></MainLayout>} />
+        <Route path="/updatebook/:id" element={<UpdateBook />} />
+        
+        {/* Routes without Navbar + Footer */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+      </Routes>
       
-      <Route path="/view-details/:id" element={<MainLayout><ViewBookDetails /></MainLayout>} />
-      <Route path="/all-books/view-details/:id" element={<MainLayout><ViewBookDetails /></MainLayout>} />
-      <Route path="/updatebook/:id" element={<UpdateBook/>}/>
-      {/* Routes without Navbar + Footer */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-    </Routes>
+      {/* ToastContainer placed outside of Routes to be available globally */}
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+      />
+    </>
   );
 };
 

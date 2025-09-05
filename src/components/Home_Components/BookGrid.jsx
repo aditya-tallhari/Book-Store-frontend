@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getAllBooks } from '../../lib/api/books'; // Assuming this API service provides books with image URLs
-import LoaderSVG from "../Loader/Loader"; // Import the LoaderSVG component
+import LoaderSVG from '../Loader/Loader'; // Import the LoaderSVG component
 
 const BookGrid = () => {
   const [bookImages, setBookImages] = useState([]);

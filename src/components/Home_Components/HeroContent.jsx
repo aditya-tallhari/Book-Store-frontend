@@ -53,4 +53,4 @@ const HeroContent = ({ textVariants, childTextVariants }) => (
   </motion.div>
 );
 
-export default HeroContent
+export default HeroContent;
