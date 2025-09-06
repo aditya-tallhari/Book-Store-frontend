@@ -1,351 +1,531 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate
+import { useParams, useNavigate } from "react-router-dom";
 import { getBookById, addBookToFavourite, addBookToCart, deleteBook } from "../../lib/api/books";
 import LoaderSVG from "../Loader/Loader";
 import { motion } from "framer-motion";
-import { FaRegHeart } from "react-icons/fa";
-import { useSelector } from "react-redux";
-import { FaRegEdit } from "react-icons/fa";
+import { FaRegHeart, FaRegEdit } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
+import { useSelector } from "react-redux";
 import { toast } from 'react-toastify';
+import AIBookInsights from '../AIBookInsights';
+
+// Gemini Icon Component
+const GeminiIcon = ({ className = "w-6 h-6" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M12 2L2 7L12 12L22 7L12 2Z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M2 17L12 22L22 17"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M2 12L12 17L22 12"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 export default function ViewBookDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate(); // Hook for navigation
-  const [book, setBook] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-  const role = useSelector((state) => state.auth.role);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [book, setBook] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const role = useSelector((state) => state.auth.role);
 
-  // Animation variants for the main container
-  const containerVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-        when: "beforeChildren",
-        staggerChildren: 0.2
-      }
-    }
-  };
+  const containerVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+        when: "beforeChildren",
+        staggerChildren: 0.2
+      }
+    }
+  };
 
-  // Animation variants for image and details content
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
-  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
+  };
 
-  // Animation variants for individual text elements within details
-  const textChildVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
-  };
+  const textChildVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  };
 
-  // Handle adding book to favourites
-  const handlefavourite = async () => {
-    try {
-      const response = await addBookToFavourite(id);
-      toast.success(response.message || "Book added to favourites successfully!");
-    } catch (error) {
-      console.error("Error adding to favourites:", error);
-      const errorMessage = error.response?.data?.message || "Failed to add book to favourites. Please try again.";
-      toast.error(errorMessage);
-    }
-  };
+  const handlefavourite = async () => {
+    if (!isLoggedIn) {
+      toast.warn("Please log in to add books to favourites.");
+      return;
+    }
 
-  // Handle adding book to cart
-  const handlecart = async () => {
-    try {
-      const response = await addBookToCart(id);
-      toast.success(response.message || "Book added to cart successfully!");
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      const errorMessage = error.response?.data?.message || "Failed to add book to cart. Please try again.";
-      toast.error(errorMessage);
-    }
-  };
+    try {
+      const response = await addBookToFavourite(id);
+      toast.success(response.message || "Book added to favourites successfully!");
+    } catch (error) {
+      console.error("Error adding to favourites:", error);
+      const errorMessage = error.response?.data?.message || "Failed to add book to favourites. Please try again.";
+      toast.error(errorMessage);
+      
+      if (error.response?.status === 401) {
+        toast.error("Please log in to add books to favourites.");
+      }
+    }
+  };
 
-  // Handle deleting the book (Admin only)
-  const handleDelete = async () => {
-    // Replaced window.confirm with a more modern, non-blocking toast
-    const promise = deleteBook(book._id);
-    
-    toast.promise(promise, {
-      pending: "Deleting book...",
-      success: {
-        render({ data }) {
-          navigate('/all-books');
-          return "Book deleted successfully!";
-        }
-      },
-      error: {
-        render({ data }) {
-          console.error("Error deleting book:", data);
-          return data.response?.data?.message || "Failed to delete book. Please try again.";
-        }
-      }
-    });
-  };
+  const handlecart = async () => {
+    if (!isLoggedIn) {
+      toast.warn("Please log in to add books to cart.");
+      return;
+    }
 
-  // Handle navigating to the edit page (Admin only)
-  const handleEdit = () => {
-    // Navigate to a new route for editing
-    navigate(`/updatebook/${book._id}`);
-  };
+    if (book.stock === 0) {
+      toast.error("This book is out of stock.");
+      return;
+    }
 
-  useEffect(() => {
-    const fetchBookDetails = async () => {
-      try {
-        const fetchedBook = await getBookById(id);
-        setBook(fetchedBook);
-      } catch (err) {
-        console.error("Error fetching book details:", err);
-        const errorMessage = err.response?.data?.message || "Failed to load book details. Please try again later.";
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (id) {
-      fetchBookDetails();
-    } else {
-      setLoading(false);
-      setError("No book ID provided in URL.");
-    }
-  }, [id]);
+    try {
+      const response = await addBookToCart(id);
+      toast.success(response.message || "Book added to cart successfully!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      const errorMessage = error.response?.data?.message || "Failed to add book to cart. Please try again.";
+      toast.error(errorMessage);
+      
+      if (error.response?.status === 401) {
+        toast.error("Please log in to add books to cart.");
+      }
+    }
+  };
 
-  const placeholderImage = "https://placehold.co/400x600/E0E0E0/333333?text=Book+Cover";
+  const handleDelete = async () => {
+    toast.warn(
+      (
+        <div className="flex flex-col">
+          <p className="font-semibold mb-2">Are you sure you want to delete "{book.title}"?</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                const promise = deleteBook(book._id);
+                toast.promise(promise, {
+                  pending: "Deleting book...",
+                  success: {
+                    render() {
+                      navigate('/all-books');
+                      return "Book deleted successfully!";
+                    }
+                  },
+                  error: {
+                    render({ data }) {
+                      console.error("Error deleting book:", data);
+                      return data.response?.data?.message || "Failed to delete book. Please try again.";
+                    }
+                  }
+                });
+                toast.dismiss();
+              }}
+              className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+            >
+              Yes, Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss()}
+              className="px-3 py-1 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+            >
+              Cancel
+            </button>
+        </div>
+        </div>
+      ),
+      {
+        autoClose: false,
+        closeButton: false,
+        position: "top-center",
+        closeOnClick: false,
+        draggable: false,
+      }
+    );
+  };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <LoaderSVG size={80} color="#6366F1" />
-        <p className="mt-4 text-lg text-gray-700 text-center">Loading book details...</p>
-      </div>
-    );
-  }
+  const handleEdit = () => {
+    navigate(`/updatebook/${book._id}`);
+  };
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md text-center">
-          <p className="text-xl text-red-600 font-semibold">{error}</p>
-        </div>
-      </div>
-    );
-  }
+  const handleAIBookInsights = () => {
+    if (!isLoggedIn) {
+      toast.warn("Please log in to use AI features.");
+      return;
+    }
+    setIsAiModalOpen(true);
+  };
 
-  if (!book) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 max-w-md text-center">
-          <p className="text-xl text-gray-700">Book not found.</p>
-        </div>
-      </div>
-    );
-  }
+  const handleBuyNow = () => {
+    if (!isLoggedIn) {
+      toast.warn("Please log in to purchase books.");
+      return;
+    }
 
-  return (
-    <section className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen py-8 md:py-16 px-4 sm:px-6 lg:px-8">
-      <motion.div
-        className="max-w-7xl mx-auto"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Removed custom message block and will use react-toastify instead */}
-          
-          {/* Mobile-first layout that changes to side-by-side on larger screens */}
-          <div className="flex flex-col lg:flex-row">
-            
-            {/* Image Section */}
-            <motion.div
-              className="relative lg:w-2/5 p-6 md:p-8 lg:p-10 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center"
-              variants={itemVariants}
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300, damping: 10 }}
-            >
-              {/* Action buttons container - positioned for both mobile and desktop */}
-              <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 sm:flex-row sm:gap-2">
-                {isLoggedIn === true && role === "user" && (
-                  <motion.button 
-                    className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg text-red-500 hover:text-red-600 hover:bg-white transition-all duration-200"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handlefavourite}
-                  >
-                    <FaRegHeart className="w-5 h-5" />
-                  </motion.button>
-                )}
-                {isLoggedIn === true && role === "admin" && (
-                  <>
-                    <motion.button 
-                      className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg text-blue-500 hover:text-blue-600 hover:bg-white transition-all duration-200"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleEdit}
-                    >
-                      <FaRegEdit className="w-5 h-5" />
-                    </motion.button>
-                    <motion.button 
-                      className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg text-red-500 hover:text-red-600 hover:bg-white transition-all duration-200"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleDelete}
-                    >
-                      <MdDeleteOutline className="w-5 h-5" />
-                    </motion.button>
-                  </>
-                )}
-              </div>
+    if (book.stock === 0) {
+      toast.error("This book is out of stock.");
+      return;
+    }
 
-              {/* Book Image */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <img
-                  src={book.imageUrl || book.image || placeholderImage}
-                  alt={book.title || "Book Cover"}
-                  className="w-full max-w-xs sm:max-w-sm h-auto object-contain rounded-xl shadow-2xl transform transition-all duration-300 group-hover:scale-105"
-                  onError={(e) => { e.target.onerror = null; e.target.src = placeholderImage; }}
-                />
-              </div>
-            </motion.div>
-            
-            {/* Details Section */}
-            <motion.div
-              className="lg:w-3/5 p-6 md:p-8 lg:p-10 flex flex-col justify-center"
-              variants={itemVariants}
-            >
-              {/* Title and Author */}
-              <motion.div variants={textChildVariants} className="mb-6">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
-                  {book.title || "Untitled Book"}
-                </h1>
-                <p className="text-lg sm:text-xl text-indigo-600 font-semibold">
-                  by {book.author || "Unknown Author"}
-                </p>
-              </motion.div>
+    // Navigate to checkout with this book
+    navigate('/checkout', { state: { books: [book], total: book.price } });
+  };
 
-              {/* Rating and Language */}
-              <motion.div 
-                className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6" 
-                variants={textChildVariants}
-              >
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <svg 
-                      key={i} 
-                      className={`w-5 h-5 ${i < (book.rating || 4) ? 'text-yellow-400' : 'text-gray-300'}`} 
-                      fill="currentColor" 
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.071 3.292a1 1 0 00.95.69h3.46c.969 0 1.371 1.24.588 1.81l-2.793 2.03a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.793-2.03a1 1 0 00-1.176 0l-2.793 2.03c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L3.25 8.719c-.783-.57-.381-1.81.588-1.81h3.46a1 1 0 00.95-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                  <span className="ml-2 text-sm text-gray-600 font-medium">
-                    {book.rating || 4}/5
-                  </span>
-                </div>
-                {book.language && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border">
-                    {book.language}
-                  </span>
-                )}
-              </motion.div>
+  useEffect(() => {
+    const fetchBookDetails = async () => {
+      try {
+        setLoading(true);
+        const fetchedBook = await getBookById(id);
+        setBook(fetchedBook);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching book details:", err);
+        const errorMessage = err.response?.data?.message || "Failed to load book details. Please try again later.";
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (id) {
+      fetchBookDetails();
+    } else {
+      setLoading(false);
+      setError("No book ID provided in URL.");
+    }
+  }, [id]);
 
-              {/* Description */}
-              <motion.div variants={textChildVariants} className="mb-6">
-                <p className="text-gray-700 text-base leading-relaxed">
-                  {book.desc || 'A detailed description of this book is not available. This book offers a compelling narrative and insightful perspectives that will captivate readers from start to finish. Dive into its pages to explore a world of imagination and knowledge.'}
-                </p>
-              </motion.div>
+  const placeholderImage = "https://placehold.co/400x600/E0E0E0/333333?text=Book+Cover";
 
-              {/* Price and Stock */}
-              <motion.div variants={textChildVariants} className="mb-8">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 bg-gray-50 rounded-xl border">
-                  <div>
-                    <p className="text-3xl font-bold text-gray-900">
-                      <span className="text-indigo-600">₹{book.price?.toFixed(2) ?? 'N/A'}</span>
-                    </p>
-                  </div>
-                  {book.stock !== undefined && (
-                    <div className="flex items-center">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        book.stock > 0 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
-                      }`}>
-                        {book.stock > 0 ? `${book.stock} in stock` : 'Out of stock'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <LoaderSVG size={80} color="#6366F1" />
+        <p className="mt-4 text-lg text-gray-700 text-center">Loading book details...</p>
+      </div>
+    );
+  }
 
-              {/* Action Buttons */}
-              {isLoggedIn === true && role === "user" && (
-                <motion.div 
-                  className="flex flex-col sm:flex-row gap-4" 
-                  variants={textChildVariants}
-                >
-                  <motion.button
-                    className="flex-1 bg-indigo-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handlecart}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13v6a1 1 0 001 1h8a1 1 0 001-1v-6M7 13H5.4M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
-                    </svg>
-                    <span>Add to Cart</span>
-                  </motion.button>
-                  
-                  <motion.button 
-                    className="flex-1 bg-gray-900 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Buy Now
-                  </motion.button>
-                </motion.div>
-              )}
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md text-center">
+          <p className="text-xl text-red-600 font-semibold mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-              {isLoggedIn === true && role === "admin" && (
-                <motion.div 
-                  className="flex flex-col sm:flex-row gap-4" 
-                  variants={textChildVariants}
-                >
-                  <motion.button
-                    className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleEdit}
-                  >
-                    <FaRegEdit className="w-5 h-5" />
-                    <span>Edit Book</span>
-                  </motion.button>
-                  
-                  <motion.button 
-                    className="flex-1 bg-red-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleDelete}
-                  >
-                    <MdDeleteOutline className="w-5 h-5" />
-                    <span>Delete Book</span>
-                  </motion.button>
-                </motion.div>
-              )}
-            </motion.div>
-          </div>
-        </div>
-      </motion.div>
-    </section>
-  );
+  if (!book) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 max-w-md text-center">
+          <p className="text-xl text-gray-700 mb-4">Book not found.</p>
+          <button
+            onClick={() => navigate('/all-books')}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Browse All Books
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isOutOfStock = book.stock === 0;
+
+  return (
+    <>
+      <section className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative">
+        {/* AI Insights Floating Button - Professional Positioning */}
+        {isLoggedIn && (
+          <motion.button 
+            className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 transition-all duration-300 group"
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleAIBookInsights}
+            title="AI Book Insights"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1, type: "spring", stiffness: 200 }}
+          >
+            <GeminiIcon className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 opacity-20 animate-pulse"></div>
+          </motion.button>
+        )}
+
+        <motion.div
+          className="max-w-7xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            {/* Mobile-first layout that changes to side-by-side on larger screens */}
+            <div className="flex flex-col lg:flex-row">
+              
+              {/* Image Section */}
+              <motion.div
+                className="relative lg:w-2/5 p-6 md:p-8 lg:p-10 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center"
+                variants={itemVariants}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 10 }}
+              >
+                {/* Action buttons container - positioned for both mobile and desktop */}
+                <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 sm:flex-row sm:gap-2">
+                  {isLoggedIn === true && role === "user" && (
+                    <motion.button 
+                      className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg text-red-500 hover:text-red-600 hover:bg-white transition-all duration-200"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handlefavourite}
+                      title="Add to Favourites"
+                    >
+                      <FaRegHeart className="w-5 h-5" />
+                    </motion.button>
+                  )}
+                  {isLoggedIn === true && role === "admin" && (
+                    <>
+                      <motion.button 
+                        className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg text-blue-500 hover:text-blue-600 hover:bg-white transition-all duration-200"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleEdit}
+                        title="Edit Book"
+                      >
+                        <FaRegEdit className="w-5 h-5" />
+                      </motion.button>
+                      <motion.button 
+                        className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg text-red-500 hover:text-red-600 hover:bg-white transition-all duration-200"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleDelete}
+                        title="Delete Book"
+                      >
+                        <MdDeleteOutline className="w-5 h-5" />
+                      </motion.button>
+                    </>
+                  )}
+                </div>
+
+                {/* Book Image */}
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <img
+                    src={book.imageUrl || book.image || placeholderImage}
+                    alt={book.title || "Book Cover"}
+                    className="w-full max-w-xs sm:max-w-sm h-auto object-contain rounded-xl shadow-2xl transform transition-all duration-300 group-hover:scale-105"
+                    onError={(e) => { 
+                      e.target.onerror = null; 
+                      e.target.src = placeholderImage; 
+                    }}
+                    loading="lazy"
+                  />
+                </div>
+              </motion.div>
+              
+              {/* Details Section */}
+              <motion.div
+                className="lg:w-3/5 p-6 md:p-8 lg:p-10 flex flex-col justify-center"
+                variants={itemVariants}
+              >
+                {/* Title and Author */}
+                <motion.div variants={textChildVariants} className="mb-6">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
+                    {book.title || "Untitled Book"}
+                  </h1>
+                  <p className="text-lg sm:text-xl text-indigo-600 font-semibold">
+                    by {book.author || "Unknown Author"}
+                  </p>
+                </motion.div>
+
+                {/* Rating and Language */}
+                <motion.div 
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6" 
+                  variants={textChildVariants}
+                >
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <svg 
+                        key={i} 
+                        className={`w-5 h-5 ${i < (book.rating || 4) ? 'text-yellow-400' : 'text-gray-300'}`} 
+                        fill="currentColor" 
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.071 3.292a1 1 0 00.95.69h3.46c.969 0 1.371 1.24.588 1.81l-2.793 2.03a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.793-2.03a1 1 0 00-1.176 0l-2.793 2.03c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L3.25 8.719c-.783-.57-.381-1.81.588-1.81h3.46a1 1 0 00.95-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                    <span className="ml-2 text-sm text-gray-600 font-medium">
+                      {book.rating || 4}/5
+                    </span>
+                  </div>
+                  {book.language && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border">
+                      {book.language}
+                    </span>
+                  )}
+                </motion.div>
+
+                {/* Description */}
+                <motion.div variants={textChildVariants} className="mb-6">
+                  <p className="text-gray-700 text-base leading-relaxed">
+                    {book.desc || 'A detailed description of this book is not available. This book offers a compelling narrative and insightful perspectives that will captivate readers from start to finish. Dive into its pages to explore a world of imagination and knowledge.'}
+                  </p>
+                </motion.div>
+
+                {/* Price and Stock */}
+                <motion.div variants={textChildVariants} className="mb-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 bg-gray-50 rounded-xl border">
+                    <div>
+                      <p className="text-3xl font-bold text-gray-900">
+                        <span className="text-indigo-600">₹{book.price?.toFixed(2) ?? 'N/A'}</span>
+                      </p>
+                    </div>
+                    {book.stock !== undefined && (
+                      <div className="flex items-center">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                          book.stock > 0 
+                            ? book.stock > 10 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}>
+                          {book.stock > 0 
+                            ? book.stock > 10 
+                              ? `${book.stock} in stock` 
+                              : `Only ${book.stock} left!`
+                            : 'Out of stock'
+                          }
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+
+                {/* Action Buttons */}
+                {isLoggedIn === true && role === "user" && (
+                  <motion.div 
+                    className="flex flex-col sm:flex-row gap-4" 
+                    variants={textChildVariants}
+                  >
+                    <motion.button
+                      className={`flex-1 py-4 px-6 rounded-xl font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2 ${
+                        isOutOfStock 
+                          ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                          : 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500'
+                      }`}
+                      whileHover={!isOutOfStock ? { scale: 1.02 } : {}}
+                      whileTap={!isOutOfStock ? { scale: 0.98 } : {}}
+                      onClick={handlecart}
+                      disabled={isOutOfStock}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13v6a1 1 0 001 1h8a1 1 0 001-1v-6M7 13H5.4M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
+                      </svg>
+                      <span>{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
+                    </motion.button>
+                    
+                    <motion.button 
+                      className={`flex-1 py-4 px-6 rounded-xl font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 ${
+                        isOutOfStock 
+                          ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                          : 'bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500'
+                      }`}
+                      whileHover={!isOutOfStock ? { scale: 1.02 } : {}}
+                      whileTap={!isOutOfStock ? { scale: 0.98 } : {}}
+                      onClick={handleBuyNow}
+                      disabled={isOutOfStock}
+                    >
+                      {isOutOfStock ? 'Unavailable' : 'Buy Now'}
+                    </motion.button>
+                  </motion.div>
+                )}
+
+                {isLoggedIn === true && role === "admin" && (
+                  <motion.div 
+                    className="flex flex-col sm:flex-row gap-4" 
+                    variants={textChildVariants}
+                  >
+                    <motion.button
+                      className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleEdit}
+                    >
+                      <FaRegEdit className="w-5 h-5" />
+                      <span>Edit Book</span>
+                    </motion.button>
+                    
+                    <motion.button 
+                      className="flex-1 bg-red-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleDelete}
+                    >
+                      <MdDeleteOutline className="w-5 h-5" />
+                      <span>Delete Book</span>
+                    </motion.button>
+                  </motion.div>
+                )}
+
+                {!isLoggedIn && (
+                  <motion.div 
+                    className="text-center" 
+                    variants={textChildVariants}
+                  >
+                    <p className="text-gray-600 mb-4">Please log in to purchase or add to cart</p>
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+                    >
+                      Log In
+                    </button>
+                  </motion.div>
+                )}
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* AI Insights Modal */}
+      <AIBookInsights 
+        bookId={id}
+        bookTitle={book?.title}
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+      />
+    </>
+  );
 }
