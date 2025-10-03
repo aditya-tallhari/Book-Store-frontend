@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+// src/pages/Login.jsx
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { authActions } from "../store/auth";
 import { loginUser } from "../lib/api/user";
-import LoaderSVG from "../components/Loader/Loader"; // ✅ Import your Loader
-import { toast } from "react-toastify"; // Import toast
+import { toast } from "react-toastify";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
 const Login = () => {
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -22,12 +24,10 @@ const Login = () => {
     try {
       const res = await loginUser(credentials);
       if (res?.success) {
-        // Save to localStorage
         localStorage.setItem("id", res.id);
         localStorage.setItem("role", res.role);
         localStorage.setItem("token", res.token);
 
-        // Dispatch login action with actual values from res
         dispatch(
           authActions.login({
             id: res.id,
@@ -37,13 +37,14 @@ const Login = () => {
         );
 
         dispatch(authActions.changeRole(res.role));
-        toast.success("Login successful!");
+        toast.success("Login successful! Welcome back.");
         navigate("/");
       } else {
         toast.error("Invalid credentials. Please try again.");
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || "Login failed. Please try again.";
+      const errorMessage =
+        err.response?.data?.message || "Login failed. Please try again.";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -51,96 +52,127 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-gray-900 text-center">
-          Welcome Back
-        </h2>
-        <p className="text-gray-500 text-center mt-2">
-          Sign in to your account
-        </p>
-
-        {/* Google Login */}
-        <button
-          type="button"
-          className="w-full mt-6 flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-3 hover:bg-gray-50 transition"
-        >
-          <img
-            src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/login/googleLogo.svg"
-            alt="Google"
-            className="w-5 h-5"
-          />
-          <span className="text-gray-600 text-sm font-medium">
-            Sign in with Google
-          </span>
-        </button>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 my-6">
-          <div className="flex-1 h-px bg-gray-300"></div>
-          <span className="text-gray-400 text-sm">or</span>
-          <div className="flex-1 h-px bg-gray-300"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-400 via-purple-300 to-purple-100 px-4 py-8">
+      <div className="w-full max-w-6xl flex items-center gap-12">
+        {/* Left Side - Illustration */}
+        <div className="hidden lg:flex lg:w-1/2 items-center justify-center">
+          <div className="max-w-lg">
+            <img
+              src="/Bookshop-bro.svg"
+              alt="Bookshop illustration"
+              className="w-200 h-auto drop-shadow-5xl "
+            />
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email/Username */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email or Username
-            </label>
-            <input
-              type="text"
-              value={emailOrUsername}
-              onChange={(e) => setEmailOrUsername(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700"
-              placeholder="Enter your email or username"
-            />
+        {/* Right Side - Login Card */}
+        <div className="w-full lg:w-1/2 max-w-md mx-auto">
+          <div className="bg-white rounded-2xl shadow-2xl p-10">
+            {/* Header */}
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                Hello,<br />Good Morning
+              </h2>
+              <p className="text-gray-500 text-sm">Login your account</p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Username/Email Field */}
+              <div>
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  Username
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={emailOrUsername}
+                    onChange={(e) => setEmailOrUsername(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-800 placeholder-gray-400"
+                    placeholder="Username"
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-800 placeholder-gray-400"
+                    placeholder="Password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg transition-all font-semibold flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-lg mt-6"
+              >
+                {loading ? (
+                  <>
+                    <svg
+                      className="animate-spin h-5 w-5 text-white mr-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Signing in...
+                  </>
+                ) : (
+                  "Login"
+                )}
+              </button>
+            </form>
+
+            {/* Create Account Link */}
+            <div className="text-center mt-6">
+              <Link
+                to="/signup"
+                className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+              >
+                Create Account
+              </Link>
+            </div>
           </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700"
-              placeholder="Enter your password"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-gray-600">
-              <input type="checkbox" className="w-4 h-4" /> Remember me
-            </label>
-            <a href="#" className="text-indigo-500 hover:underline">
-              Forgot password?
-            </a>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition font-medium flex items-center justify-center"
-          >
-            {loading ? <LoaderSVG size={20} color="#fff" /> : "Sign In"}
-          </button>
-        </form>
-
-        {/* Signup link */}
-        <p className="text-center text-gray-500 text-sm mt-6">
-          Don’t have an account?{" "}
-          <Link to="/signup" className="text-indigo-500 hover:underline">
-            Sign up
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

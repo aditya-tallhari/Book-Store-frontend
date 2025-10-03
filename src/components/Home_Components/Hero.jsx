@@ -29,10 +29,11 @@ const Hero = () => {
 
   // Define the static properties for each visual slot on the stack
   const slotPositions = [
-    { top: '0px', left: '0px', rotate: '0deg', zIndex: 30 },
-    { top: '25px', left: '20px', rotate: '-5deg', zIndex: 20 },
-    { top: '50px', left: '40px', rotate: '-10deg', zIndex: 10 }
-  ];
+  { top: '0px', left: '0px', rotate: '0deg', zIndex: 30 },
+  { top: '20px', left: '20px', rotate: '-5deg', zIndex: 20 },
+  { top: '40px', left: '40px', rotate: '-10deg', zIndex: 10 }
+];
+
 
   // Data for the three books, including title and author
   const bookData = [
@@ -75,7 +76,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="min-h-screen bg-gray-50 flex items-center justify-center py-12 md:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="min-h-screen bg-gray-50 flex items-center justify-center py-12 md:py-20 px-4 sm:px-6 lg:px-8 -mt-12 overflow-hidden"> 
       <div className="max-w-7xl mx-auto md:flex md:items-center md:space-x-12">
         <HeroContent textVariants={textVariants} childTextVariants={childTextVariants} />
         <BookStack

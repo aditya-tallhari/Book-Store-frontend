@@ -23,7 +23,7 @@ const Profile = () => {
       setErrorFetchingProfile(null);
       try {
         const response = await axios.get(
-          "http://localhost:5002/api/auth/get-user-information",
+          "https://book-store-backend-project.vercel.app/api/auth/get-user-information",
           { headers }
         );
         setProfile(response.data);

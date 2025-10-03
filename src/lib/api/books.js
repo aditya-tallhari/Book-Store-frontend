@@ -25,7 +25,7 @@ export const getBookById = async (id) => {
     const res = await axiosInstance.get(`/book/get-by-id/${id}`);
     return res?.data?.data || null; // null instead of [] since it's a single book
   } catch (error) {
-    console.log("Error in Fetching the Book", error);
+    // console.log("Error in Fetching the Book", error);
     return null;
   }
 };
@@ -128,14 +128,14 @@ export const getFavouriteBooks = async () => {
       authorization: `Bearer ${localStorage.getItem("token")}`,
     };
     
-    console.log("Fetching favourite books with headers:", headers);
+    // console.log("Fetching favourite books with headers:", headers);
     
     const response = await axiosInstance.get(
       "/favourite/get-favourite-books",
       { headers }
     );
     
-    console.log("Favourite books response:", response.data);
+    // console.log("Favourite books response:", response.data);
     return response?.data?.favouriteBooks || [];
     
   } catch (error) {
@@ -172,22 +172,27 @@ export const placeOrder = async (orderBooks) => {
       id: localStorage.getItem("id") || "mock-user-id",
       authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
     };
-    
+
     const requestBody = {
-      order: orderBooks.map(book => ({ _id: book._id || book.id }))
+      orderItems: orderBooks.map(book => ({
+        bookId: book._id || book.id,
+        quantity: book.quantity || 1 // make sure quantity is included
+      }))
     };
-    
+
     const response = await axiosInstance.post(
       "/order/place-order", 
       requestBody, 
       { headers }
     );
+
     return response?.data || {};
   } catch (error) {
     console.error("Error placing order:", error);
     throw error; // Re-throw to handle in component
   }
 };
+
 
 export const getOrderHistory = async () => {
   try {

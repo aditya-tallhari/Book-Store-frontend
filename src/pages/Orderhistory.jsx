@@ -116,12 +116,10 @@ const OrderHistory = () => {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Order History</h1>
             <p className="text-gray-600">Track and manage your book orders</p>
           </div>
-          {/* Empty State */}
           <div className="text-center py-12">
             <div className="relative mx-auto w-32 h-32 mb-6">
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full animate-pulse"></div>
@@ -177,125 +175,119 @@ const OrderHistory = () => {
 
           {/* Table Body */}
           <div className="divide-y divide-gray-200">
-            {orders.map((order, index) => (
-              <div key={order._id} className="hover:bg-gray-50 transition-colors">
-                <div className="px-6 py-6">
-                  <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-start">
-                    {/* Order Number */}
-                    <div className="md:col-span-1">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold text-sm">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            #{order._id.slice(-8).toUpperCase()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+            {orders.map((order, index) => {
+              const books = order.orderItems?.map(item => item.book) || [];
 
-                    {/* Books */}
-                    <div className="md:col-span-2">
-                      <div className="space-y-2">
-                        {order.book.slice(0, 2).map((book) => (
-                          <div key={book._id} className="flex items-center space-x-3">
-                            <img
-                              src={book.imageUrl || book.coverImage || 'https://placehold.co/40x60/E0E0E0/333333?text=Book'}
-                              alt={book.title}
-                              className="w-10 h-14 object-cover rounded shadow-sm"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://placehold.co/40x60/E0E0E0/333333?text=Book';
-                              }}
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {book.title}
-                              </p>
-                              <p className="text-xs text-gray-500 truncate">
-                                by {book.author}
-                              </p>
-                              <p className="text-xs font-medium text-green-600">
-                                ₹{book.price?.toFixed(2)}
-                              </p>
-                            </div>
+              return (
+                <div key={order._id} className="hover:bg-gray-50 transition-colors">
+                  <div className="px-6 py-6">
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-start">
+                      {/* Order Number */}
+                      <div className="md:col-span-1">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold text-sm">
+                            {index + 1}
                           </div>
-                        ))}
-                        {order.book.length > 2 && (
-                          <p className="text-xs text-gray-500 pl-13">
-                            +{order.book.length - 2} more books
-                          </p>
-                        )}
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              #{order._id.slice(-8).toUpperCase()}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Amount */}
-                    <div className="md:col-span-1">
-                      <div className="text-lg font-bold text-green-600">
-                        ₹{calculateOrderTotal(order.book).toFixed(2)}
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {order.book.length} item{order.book.length > 1 ? 's' : ''}
-                      </p>
-                    </div>
-
-                    {/* Status */}
-                    <div className="md:col-span-1">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
-                        {getStatusIcon(order.status)}
-                        <span className="ml-1">{order.status || 'Order Placed'}</span>
-                      </span>
-                    </div>
-
-                    {/* Date */}
-                    <div className="md:col-span-1">
-                      <div className="flex items-center space-x-1 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4" />
-                        <span>{formatDate(order.createdAt)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* View Details Button (Mobile) */}
-                  <div className="mt-4 md:hidden">
-                    <button
-                      onClick={() => setSelectedOrder(selectedOrder === order._id ? null : order._id)}
-                      className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span>{selectedOrder === order._id ? 'Hide Details' : 'View Details'}</span>
-                    </button>
-                    
-                    {selectedOrder === order._id && (
-                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium text-gray-900 mb-3">Order Details</h4>
-                        <div className="space-y-3">
-                          {order.book.map((book) => (
-                            <div key={book._id} className="flex items-center space-x-3 p-3 bg-white rounded border">
+                      {/* Books */}
+                      <div className="md:col-span-2">
+                        <div className="space-y-2">
+                          {books.slice(0, 2).map((book) => (
+                            <div key={book._id} className="flex items-center space-x-3">
                               <img
                                 src={book.imageUrl || book.coverImage || 'https://placehold.co/40x60/E0E0E0/333333?text=Book'}
                                 alt={book.title}
-                                className="w-12 h-16 object-cover rounded"
+                                className="w-10 h-14 object-cover rounded shadow-sm"
                                 onError={(e) => {
                                   e.target.onerror = null;
                                   e.target.src = 'https://placehold.co/40x60/E0E0E0/333333?text=Book';
                                 }}
                               />
-                              <div className="flex-1">
-                                <p className="font-medium text-gray-900">{book.title}</p>
-                                <p className="text-sm text-gray-600">by {book.author}</p>
-                                <p className="text-sm font-medium text-green-600">₹{book.price?.toFixed(2)}</p>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-gray-900 truncate">{book.title}</p>
+                                <p className="text-xs text-gray-500 truncate">by {book.author}</p>
+                                <p className="text-xs font-medium text-green-600">₹{book.price?.toFixed(2)}</p>
                               </div>
                             </div>
                           ))}
+                          {books.length > 2 && (
+                            <p className="text-xs text-gray-500 pl-13">+{books.length - 2} more books</p>
+                          )}
                         </div>
                       </div>
-                    )}
+
+                      {/* Amount */}
+                      <div className="md:col-span-1">
+                        <div className="text-lg font-bold text-green-600">₹{calculateOrderTotal(books).toFixed(2)}</div>
+                        <p className="text-xs text-gray-500">
+                          {books.length} item{books.length > 1 ? 's' : ''}
+                        </p>
+                      </div>
+
+                      {/* Status */}
+                      <div className="md:col-span-1">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
+                          {getStatusIcon(order.status)}
+                          <span className="ml-1">{order.status || 'Order Placed'}</span>
+                        </span>
+                      </div>
+
+                      {/* Date */}
+                      <div className="md:col-span-1">
+                        <div className="flex items-center space-x-1 text-sm text-gray-600">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(order.createdAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* View Details Button (Mobile) */}
+                    <div className="mt-4 md:hidden">
+                      <button
+                        onClick={() => setSelectedOrder(selectedOrder === order._id ? null : order._id)}
+                        className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>{selectedOrder === order._id ? 'Hide Details' : 'View Details'}</span>
+                      </button>
+                      
+                      {selectedOrder === order._id && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                          <h4 className="font-medium text-gray-900 mb-3">Order Details</h4>
+                          <div className="space-y-3">
+                            {books.map((book) => (
+                              <div key={book._id} className="flex items-center space-x-3 p-3 bg-white rounded border">
+                                <img
+                                  src={book.imageUrl || book.coverImage || 'https://placehold.co/40x60/E0E0E0/333333?text=Book'}
+                                  alt={book.title}
+                                  className="w-12 h-16 object-cover rounded"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'https://placehold.co/40x60/E0E0E0/333333?text=Book';
+                                  }}
+                                />
+                                <div className="flex-1">
+                                  <p className="font-medium text-gray-900">{book.title}</p>
+                                  <p className="text-sm text-gray-600">by {book.author}</p>
+                                  <p className="text-sm font-medium text-green-600">₹{book.price?.toFixed(2)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

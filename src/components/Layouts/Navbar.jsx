@@ -12,8 +12,8 @@ const Navbar = () => {
   const allLinks = [
     { title: "Home", link: "/" },
     { title: "All Books", link: "/all-books" },
-    { title: "Explore", link: "/explore" },
-    { title: "Shop", link: "/shop" },
+    { title: "About", link: "/about" },
+    { title: "Contact", link: "/contact" },
     { title: "Cart", link: "/cart" },
     { title: "Profile", link: "/profile" },
   ];

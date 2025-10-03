@@ -21,8 +21,8 @@ import Setting from "./pages/Setting";
 import AllOrders from "./pages/AllOrders";
 import AddBook from "./pages/AddBook";
 import UpdateBook from "./pages/UpdateBook";
-import Explore from './pages/Explore';
-import Shop from "./pages/Shop"
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 
 // A layout wrapper for routes that need Navbar + Footer
@@ -60,8 +60,8 @@ const App = () => {
         {/* Routes with Navbar + Footer */}
         <Route path="/" element={<MainLayout><Home /></MainLayout>} />
         <Route path="/all-books" element={<MainLayout><Allbooks /></MainLayout>} />
-        <Route path="/explore" element={<MainLayout><Explore /></MainLayout>}></Route>
-        <Route path="/shop" element={<MainLayout><Shop /></MainLayout>}></Route>
+        <Route path="/about" element={<MainLayout><About /></MainLayout>}></Route>
+        <Route path="/contact" element={<MainLayout><Contact /></MainLayout>}></Route>
         <Route path="/cart" element={<MainLayout><Cart /></MainLayout>} />
         <Route path="/profile" element={<MainLayout><Profile /></MainLayout>}>
           {/* Nested routes are defined here */}
