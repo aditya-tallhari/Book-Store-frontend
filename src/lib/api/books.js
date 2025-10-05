@@ -1,231 +1,249 @@
-import axiosInstance from "../../lib/axios";
+import axiosInstance from "../axios";
 
-export const getAllBooks = async () => {
+/**
+ * Get all books with pagination
+ */
+export const getAllBooks = async (page = 1, limit = 10) => {
   try {
-    const res = await axiosInstance.get("/book/get-all-books");
-    return res?.data?.data || []; // Always return an array
+    const id = localStorage.getItem("id");
+    const token = localStorage.getItem("token");
+
+    const isAdmin = localStorage.getItem("role") === "admin"; // assuming you store role in localStorage
+
+    const headers = {
+      ...(id && token ? { id, authorization: `Bearer ${token}` } : {}),
+    };
+
+    const endpoint = isAdmin ? "/admin/manage-books" : "/book/get-all-books";
+
+    const response = await axiosInstance.get(endpoint, {
+      headers,
+      params: { page, limit },
+    });
+
+    // handle both response shapes
+    return response?.data?.data || response?.data || [];
   } catch (error) {
     console.error("Error fetching books:", error);
-    return []; // fallback to empty array on erroar
+    return [];
   }
 };
 
-export const getRecentBooks=async()=>{
-    try {
-        const res=await axiosInstance.get("/book/get-recent-books");
-        return res?.data?.data || [];
-    } catch (error) {
-    console.error("Error fetching books:", error);
-    return []; // fallback to empty array on error
-    }
-}
 
-export const getBookById = async (id) => {
+/**
+ * Get recent books (for homepage, etc.)
+ */
+export const getRecentBooks = async () => {
   try {
-    const res = await axiosInstance.get(`/book/get-by-id/${id}`);
-    return res?.data?.data || null; // null instead of [] since it's a single book
+    const res = await axiosInstance.get("/book/get-recent-books");
+    return res?.data?.data || [];
   } catch (error) {
-    // console.log("Error in Fetching the Book", error);
+    console.error("Error fetching recent books:", error);
+    return [];
+  }
+};
+
+/**
+ * Get a single book by ID
+ */
+export const getBookById = async (bookId) => {
+  try {
+    const res = await axiosInstance.get(`/book/get-by-id/${bookId}`);
+    return res?.data?.data || null;
+  } catch (error) {
+    console.error("Error fetching book by ID:", error);
     return null;
   }
 };
 
+/**
+ * Add book to user's favourites
+ */
 export const addBookToFavourite = async (bookId) => {
   try {
     const headers = {
-      id: localStorage.getItem("id") || "mock-user-id",
-      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+      id: localStorage.getItem("id"),
+      authorization: `Bearer ${localStorage.getItem("token")}`,
       bookid: bookId,
     };
-    
     const response = await axiosInstance.put(
-      "/favourite/add-book-to-favourite", 
-      {}, 
+      "/favourite/add-book-to-favourite",
+      {},
       { headers }
     );
     return response?.data || {};
   } catch (error) {
     console.error("Error adding book to favourites:", error);
-    throw error; // Re-throw to handle in component
-  }
-};
-
-
-/**
- * Get all books in user's cart
- */
-export const getCartBooks = async () => {
-  try {
-    const headers = {
-      id: localStorage.getItem("id") || "mock-user-id",
-      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
-    };
-
-    const response = await axiosInstance.get(
-      "/cart/get-user-cart",
-      { headers }
-    );
-    
-    return response?.data?.cart || [];
-  } catch (error) {
-    console.error("Error fetching cart books:", error);
-    throw error; // Re-throw to handle in component
+    throw error;
   }
 };
 
 /**
- * Add a book to user's cart
+ * Get all favourite books
  */
-export const addBookToCart = async (bookId) => {
-  try {
-    const headers = {
-      id: localStorage.getItem("id") || "mock-user-id",
-      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
-      bookid: bookId,
-    };
-
-    const response = await axiosInstance.put(
-      "/cart/add-to-cart",
-      {},
-      { headers }
-    );
-    
-    return response?.data || {};
-  } catch (error) {
-    console.error("Error adding book to cart:", error);
-    throw error; // Re-throw to handle in component
-  }
-};
-
-/**
- * Remove a book from user's cart
- */
-export const removeBookFromCart = async (bookId) => {
-  try {
-    const headers = {
-      id: localStorage.getItem("id") || "mock-user-id",
-      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
-      bookid: bookId,
-    };
-
-    const response = await axiosInstance.put(
-      "/cart/remove-from-cart",
-      {},
-      { headers }
-    );
-    
-    return response?.data || {};
-  } catch (error) {
-    console.error("Error removing book from cart:", error);
-    throw error; // Re-throw to handle in component
-  }
-};
-
 export const getFavouriteBooks = async () => {
   try {
     const headers = {
       id: localStorage.getItem("id"),
       authorization: `Bearer ${localStorage.getItem("token")}`,
     };
-    
-    // console.log("Fetching favourite books with headers:", headers);
-    
     const response = await axiosInstance.get(
       "/favourite/get-favourite-books",
       { headers }
     );
-    
-    // console.log("Favourite books response:", response.data);
     return response?.data?.favouriteBooks || [];
-    
   } catch (error) {
     console.error("Error fetching favourite books:", error);
-    console.error("Error response:", error.response?.data);
     throw error;
   }
 };
 
+/**
+ * Remove book from favourites
+ */
 export const removeBookFromFavourites = async (bookId) => {
   try {
     const headers = {
-      id: localStorage.getItem("id") || "mock-user-id",
-      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+      id: localStorage.getItem("id"),
+      authorization: `Bearer ${localStorage.getItem("token")}`,
       bookid: bookId,
     };
-
     const response = await axiosInstance.put(
-      "/favourite/remove-book-from-favourite", 
-      {}, 
+      "/favourite/remove-book-from-favourite",
+      {},
       { headers }
     );
     return response?.data || {};
-
   } catch (error) {
     console.error("Error removing book from favourites:", error);
-    throw error; // Re-throw to handle in component
+    throw error;
   }
-}
+};
 
+/**
+ * Cart: Get all books
+ */
+export const getCartBooks = async () => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id"),
+      authorization: `Bearer ${localStorage.getItem("token")}`,
+    };
+    const response = await axiosInstance.get("/cart/get-user-cart", {
+      headers,
+    });
+    return response?.data?.cart || [];
+  } catch (error) {
+    console.error("Error fetching cart books:", error);
+    throw error;
+  }
+};
+
+/**
+ * Cart: Add book
+ */
+export const addBookToCart = async (bookId) => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id"),
+      authorization: `Bearer ${localStorage.getItem("token")}`,
+      bookid: bookId,
+    };
+    const response = await axiosInstance.put(
+      "/cart/add-to-cart",
+      {},
+      { headers }
+    );
+    return response?.data || {};
+  } catch (error) {
+    console.error("Error adding book to cart:", error);
+    throw error;
+  }
+};
+
+/**
+ * Cart: Remove book
+ */
+export const removeBookFromCart = async (bookId) => {
+  try {
+    const headers = {
+      id: localStorage.getItem("id"),
+      authorization: `Bearer ${localStorage.getItem("token")}`,
+      bookid: bookId,
+    };
+    const response = await axiosInstance.put(
+      "/cart/remove-from-cart",
+      {},
+      { headers }
+    );
+    return response?.data || {};
+  } catch (error) {
+    console.error("Error removing book from cart:", error);
+    throw error;
+  }
+};
+
+/**
+ * Place an order
+ */
 export const placeOrder = async (orderBooks) => {
   try {
     const headers = {
-      id: localStorage.getItem("id") || "mock-user-id",
-      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+      id: localStorage.getItem("id"),
+      authorization: `Bearer ${localStorage.getItem("token")}`,
     };
-
     const requestBody = {
-      orderItems: orderBooks.map(book => ({
+      orderItems: orderBooks.map((book) => ({
         bookId: book._id || book.id,
-        quantity: book.quantity || 1 // make sure quantity is included
-      }))
+        quantity: book.quantity || 1,
+      })),
     };
-
     const response = await axiosInstance.post(
-      "/order/place-order", 
-      requestBody, 
+      "/order/place-order",
+      requestBody,
       { headers }
     );
-
     return response?.data || {};
   } catch (error) {
     console.error("Error placing order:", error);
-    throw error; // Re-throw to handle in component
+    throw error;
   }
 };
 
-
+/**
+ * Get user's order history
+ */
 export const getOrderHistory = async () => {
   try {
     const headers = {
-      id: localStorage.getItem("id") || "mock-user-id",
-      authorization: `Bearer ${localStorage.getItem("token") || "mock-auth-token"}`,
+      id: localStorage.getItem("id"),
+      authorization: `Bearer ${localStorage.getItem("token")}`,
     };
-    
-    const response = await axiosInstance.get(
-      "/order/get-order-history", 
-      { headers }
-    );
+    const response = await axiosInstance.get("/order/get-order-history", {
+      headers,
+    });
     return response?.data || {};
   } catch (error) {
     console.error("Error fetching order history:", error);
-    throw error; // Re-throw to handle in component
+    throw error;
   }
 };
 
+/* ======================== ADMIN ========================== */
+
+/**
+ * Add a new book (Admin)
+ */
 export const addBook = async (bookData) => {
   try {
     const token = localStorage.getItem("token");
     if (!token) throw new Error("Unauthorized: Admin token not found.");
 
-    const response = await axiosInstance.post(
-      "/book/add-book",
-      bookData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // ✅ only this
-        },
-      }
-    );
+    const response = await axiosInstance.post("/book/add-book", bookData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return response?.data?.book || {};
   } catch (error) {
@@ -233,115 +251,95 @@ export const addBook = async (bookData) => {
     throw error;
   }
 };
-
+/** Get digital books (Admin)
+ */
+export const getDigitalBooks = async () => {
+  try {
+    const response = await axiosInstance.get("/book/get-digital-books");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching digital books:", error);
+    throw error;
+  }
+};
+/**
+ * Delete a book (Admin)
+ */
 export const deleteBook = async (bookId) => {
   try {
     const token = localStorage.getItem("token");
+    if (!token) throw new Error("Unauthorized: Admin token not found.");
 
-    if (!token) {
-      throw new Error("Unauthorized: Admin token not found.");
-    }
-
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    const response = await axiosInstance.delete(
-      `/book/delete-book/${bookId}`,
-      { headers }
-    );
+    const response = await axiosInstance.delete(`/book/delete-book/${bookId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return response?.data || {};
   } catch (error) {
     console.error("Error deleting book:", error);
-    throw error; // Re-throw to handle in component
+    throw error;
   }
 };
 
 /**
- * @desc Updates a book in the database (Admin)
- * @param {string} bookId - The ID of the book to update
- * @param {object} bookData - The FormData object containing updated book details and the image file
- * @returns {object} The updated book object
+ * Update book (Admin)
  */
 export const updateBook = async (bookId, bookData) => {
   try {
     const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("Unauthorized: Admin token not found.");
-    }
-
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data", // Crucial for sending files
-    };
+    if (!token) throw new Error("Unauthorized: Admin token not found.");
 
     const response = await axiosInstance.put(
       `/book/update-book/${bookId}`,
       bookData,
-      { headers }
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
 
     return response?.data || {};
   } catch (error) {
     console.error("Error updating book:", error);
-    throw error; // Re-throw to handle in component
+    throw error;
   }
 };
 
-
 /**
- * @desc Fetches all orders from the database (Admin only)
- * @returns {Array<object>} An array of all order objects
+ * Get all orders (Admin)
  */
 export const getAllOrders = async () => {
   try {
     const token = localStorage.getItem("token");
+    if (!token) throw new Error("Unauthorized: Admin token not found.");
 
-    if (!token) {
-      throw new Error("Unauthorized: Admin token not found.");
-    }
-
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    const response = await axiosInstance.get(
-      "/order/get-all-orders",
-      { headers }
-    );
+    const response = await axiosInstance.get("/order/get-all-orders", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     return response?.data?.data || [];
   } catch (error) {
     console.error("Error fetching all orders:", error);
-    throw error; // Re-throw to handle in component
+    throw error;
   }
 };
 
-
 /**
- * @desc Updates an order's status (Admin only)
- * @param {string} orderId - The ID of the order to update
- * @param {string} newStatus - The new status of the order (e.g., "Shipped")
- * @returns {object} The updated order object
+ * Update order status (Admin)
  */
 export const updateStatus = async (orderId, newStatus) => {
   try {
     const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("Unauthorized: Admin token not found.");
-    }
-
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
+    if (!token) throw new Error("Unauthorized: Admin token not found.");
 
     const response = await axiosInstance.put(
       `/order/update-status/${orderId}`,
       { status: newStatus },
-      { headers }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
     return response?.data?.data || {};
@@ -352,26 +350,16 @@ export const updateStatus = async (orderId, newStatus) => {
 };
 
 /**
- * @desc Fetches a single order by its ID (Admin only)
- * @param {string} orderId - The ID of the order to fetch
- * @returns {object} The order object
+ * Get order by ID (Admin)
  */
 export const getOrderById = async (orderId) => {
   try {
     const token = localStorage.getItem("token");
+    if (!token) throw new Error("Unauthorized: Admin token not found.");
 
-    if (!token) {
-      throw new Error("Unauthorized: Admin token not found.");
-    }
-
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    const response = await axiosInstance.get(
-      `/order/get-order/${orderId}`,
-      { headers }
-    );
+    const response = await axiosInstance.get(`/order/get-order/${orderId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     return response?.data?.data || {};
   } catch (error) {

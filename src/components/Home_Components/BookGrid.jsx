@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { getAllBooks } from '../../lib/api/books'; // Assuming this API service provides books with image URLs
-import LoaderSVG from '../Loader/Loader'; // Import the LoaderSVG component
+import React, { useEffect, useState } from "react";
+import { getAllBooks } from "../../lib/api/books";
+import LoaderSVG from "../Loader/Loader";
 
 const BookGrid = () => {
   const [bookImages, setBookImages] = useState([]);
@@ -10,14 +10,21 @@ const BookGrid = () => {
   useEffect(() => {
     const fetchGridBooks = async () => {
       try {
-        // Fetch all books. You might want a specific API for 'featured' or 'grid' books
-        // if your backend supports it, to limit the data fetched.
-        const allBooks = await getAllBooks();
-        // Take the first 9 books, or fewer if not enough are available,
-        // and extract their image URLs (using 'imageUrl' or 'image' property).
+        let allBooks = await getAllBooks();
+        // Ensure it's always an array
+        if (!Array.isArray(allBooks)) {
+          allBooks = allBooks.data || allBooks.books || [];
+        }
+
         const images = allBooks
           .slice(0, 9)
-          .map(book => book.imageUrl || book.image || "https://placehold.co/100x150/E0E0E0/333333?text=Book");
+          .map(
+            (book) =>
+              book.imageUrl ||
+              book.image ||
+              "https://placehold.co/100x150/E0E0E0/333333?text=Book"
+          );
+
         setBookImages(images);
       } catch (err) {
         console.error("Error fetching book grid images:", err);
@@ -33,7 +40,7 @@ const BookGrid = () => {
   if (loading) {
     return (
       <div className="md:w-1/2 flex flex-col justify-center items-center p-4">
-        <LoaderSVG size={64} color="#6366F1" /> {/* Your custom SVG loader */}
+        <LoaderSVG size={64} color="#6366F1" />
         <p className="mt-4 text-gray-700">Loading book covers...</p>
       </div>
     );
@@ -59,12 +66,18 @@ const BookGrid = () => {
     <div className="md:w-1/2 flex justify-center p-4">
       <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-sm mx-auto">
         {bookImages.map((src, index) => (
-          <div key={index} className="relative aspect-w-2 aspect-h-3 overflow-hidden rounded-lg shadow-md">
+          <div
+            key={index}
+            className="relative aspect-w-2 aspect-h-3 overflow-hidden rounded-lg shadow-md"
+          >
             <img
               src={src}
               alt={`Book cover ${index + 1}`}
               className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-              onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x150?text=Book"; }}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://placehold.co/100x150?text=Book";
+              }}
             />
           </div>
         ))}

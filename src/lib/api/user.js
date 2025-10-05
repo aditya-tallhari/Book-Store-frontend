@@ -46,9 +46,10 @@ export const getUserInformation = async () => {
     return response?.data || {};
   } catch (error) {
     console.error("Error fetching user information:", error);
-    throw error; // Re-throw so components can handle it
+    throw error;
   }
 };
+
 
 export const updateAddress = async (newAddress) => {
   try {

@@ -23,6 +23,9 @@ import AddBook from "./pages/AddBook";
 import UpdateBook from "./pages/UpdateBook";
 import About from './pages/About';
 import Contact from './pages/Contact';
+import AdminDashboard from './pages/AdminDashboard';
+import ManageBooks from './pages/ManageBooks';
+import Analytics from './pages/Analytics';
 
 
 // A layout wrapper for routes that need Navbar + Footer
@@ -65,8 +68,11 @@ const App = () => {
         <Route path="/cart" element={<MainLayout><Cart /></MainLayout>} />
         <Route path="/profile" element={<MainLayout><Profile /></MainLayout>}>
           {/* Nested routes are defined here */}
-          {role === 'user' ? <Route index element={<Favourite/>} /> : <Route index element={<AllOrders/>} />}
+          {role === 'user' ? <Route index element={<Favourite/>} /> : <Route index element={<AdminDashboard/>} />}
+          {role === 'admin' && <Route path="/profile/all-order" element={<AllOrders />} />}
           {role === 'admin' && <Route path="/profile/add-book" element={<AddBook />} />}
+          {role === 'admin' && <Route path="/profile/manage-books" element={<ManageBooks />} />}
+          {role === 'admin' && <Route path="/profile/analytics" element={<Analytics />} />}
           <Route path="/profile/orderHistory" element={<Orderhistory />} />
           <Route path="/profile/settings" element={<Setting />} />
         </Route>
