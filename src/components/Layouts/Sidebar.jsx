@@ -217,6 +217,20 @@ const Sidebar = ({ data }) => {
                   isActive={isActivePath('/profile')}
                   onClick={closeSidebar}
                 />
+
+                <NavGroup
+                  icon={<BookPlus size={20} />}
+                  text="My Books"
+                  defaultOpen={location.pathname.includes('/profile/my-library') || location.pathname.includes('/profile/check-book') || location.pathname.includes('/profile/read-book')}
+                >
+                  <NavDropdownItem
+                    to="/profile/my-library"
+                    text="My Library"
+                    isActive={isActivePath('/profile/my-library')}
+                    onClick={closeSidebar}
+                  />
+                </NavGroup>
+
                 <SidebarLink
                   to="/profile/orderHistory"
                   icon={<History size={20} />}

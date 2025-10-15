@@ -1,93 +1,106 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { BookOpen, Twitter, Facebook, Instagram, Send } from 'lucide-react';
 
 const Footer = () => {
+  const footerLinks = {
+    shop: [
+      { title: "All Books", href: "/all-books" },
+      { title: "My Library", href: "/profile/my-library" },
+      { title: "Cart", href: "/cart" },
+    ],
+    company: [
+      { title: "About Us", href: "/about" },
+      { title: "Contact", href: "/contact" },
+    ],
+    legal: [
+        { title: "Privacy Policy", href: "/privacy-policy" },
+        { title: "Terms of Service", href: "/terms-of-service" },
+    ]
+  };
+
   return (
-    <footer className="bg-gray-950 text-gray-300 py-12 px-4 sm:px-6 lg:px-8"> {/* Adjusted vertical padding to py-12 */}
-      <div className="max-w-7xl mx-auto">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
-          {/* Books Section */}
-          <div>
-            <h3 className="text-2xl font-bold text-indigo-400 mb-5">BookStore</h3>
-            <p className="text-gray-400 text-base leading-relaxed">
-              Discover endless stories and knowledge. Your gateway to an immersive reading experience.
+    <footer className="bg-slate-900 text-slate-400">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          {/* Brand and Newsletter Section */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2">
+                <BookOpen className="h-8 w-8 text-indigo-500" />
+                <h1 className="text-2xl font-bold text-white">BookStore</h1>
+            </div>
+            <p className="mt-4 text-sm leading-relaxed">
+              Your digital library and gateway to endless stories. Discover your next favorite book with us.
             </p>
-          </div>
-
-          {/* Quick Links Section */}
-          <div>
-            <h3 className="text-xl font-semibold mb-5 text-white">Quick Links</h3>
-            <ul className="space-y-3">
-              <li>
-                <a href="/home" className="text-gray-400 hover:text-indigo-300 transition-colors duration-300 text-base">
-                  Home
-                </a>
-              </li>
-              <li>
-                <a href="/all-books" className="text-gray-400 hover:text-indigo-300 transition-colors duration-300 text-base">
-                  All Books
-                </a>
-              </li>
-              <li>
-                <a href="/about" className="text-gray-400 hover:text-indigo-300 transition-colors duration-300 text-base">
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a href="/contact" className="text-gray-400 hover:text-indigo-300 transition-colors duration-300 text-base">
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact Section */}
-          <div>
-            <h3 className="text-xl font-semibold mb-5 text-white">Contact</h3>
-            <div className="space-y-3 text-base">
-              <p className="text-gray-400">
-                <span className="font-medium text-gray-300">Email:</span> support@bookstore.com
-              </p>
-              <p className="text-gray-400">
-                <span className="font-medium text-gray-300">Phone:</span> +1 (555) 123-4567
-              </p>
-              <p className="text-gray-400">
-                <span className="font-medium text-gray-300">Address:</span> 123 Literary Lane, Bookville, Fictionland
-              </p>
+            <div className="mt-6">
+              <p className="font-semibold text-white">Subscribe to our newsletter</p>
+              <form className="mt-2 flex gap-2">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full rounded-md border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-indigo-500"
+                />
+                <button
+                  type="submit"
+                  className="flex-shrink-0 rounded-md bg-indigo-600 p-2.5 text-white transition hover:bg-indigo-700"
+                  aria-label="Subscribe"
+                >
+                  <Send size={18} />
+                </button>
+              </form>
             </div>
           </div>
 
-          {/* We Accept Section */}
-          <div>
-            <h3 className="text-xl font-semibold mb-5 text-white">We Accept</h3>
-            <div className="flex gap-4 flex-wrap">
-              {/* Visa */}
-              <div className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md">
-                VISA
-              </div>
-              {/* Mastercard */}
-              <div className="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md">
-                MASTERCARD
-              </div>
-              {/* American Express */}
-              <div className="bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md">
-                AMEX
-              </div>
-              {/* PayPal */}
-              <div className="bg-blue-900 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md">
-                PAYPAL
-              </div>
+          {/* Links Section */}
+          <div className="grid grid-cols-2 gap-8 lg:col-span-2 sm:grid-cols-3">
+            <div>
+              <p className="font-semibold text-white">Shop</p>
+              <ul className="mt-4 space-y-2 text-sm">
+                {footerLinks.shop.map(link => (
+                  <li key={link.title}>
+                    <Link to={link.href} className="transition hover:text-white">{link.title}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold text-white">Company</p>
+              <ul className="mt-4 space-y-2 text-sm">
+                {footerLinks.company.map(link => (
+                  <li key={link.title}>
+                    <Link to={link.href} className="transition hover:text-white">{link.title}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+             <div>
+              <p className="font-semibold text-white">Legal</p>
+              <ul className="mt-4 space-y-2 text-sm">
+                {footerLinks.legal.map(link => (
+                  <li key={link.title}>
+                    <Link to={link.href} className="transition hover:text-white">{link.title}</Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
 
-        {/* Divider Line */}
-        <div className="border-t border-gray-700 pt-8">
-          {/* Copyright */}
-          <div className="text-center">
-            <p className="text-gray-400 text-sm">
-              &copy; {new Date().getFullYear()} BookStore. All rights reserved.
-            </p>
+        {/* Bottom Bar: Copyright and Socials */}
+        <div className="mt-12 border-t border-slate-800 pt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <p className="text-xs">
+            &copy; {new Date().getFullYear()} BookStore. All Rights Reserved.
+          </p>
+          <div className="flex gap-4">
+            <Link to="#" className="transition hover:text-white" aria-label="Twitter">
+              <Twitter size={20} />
+            </Link>
+            <Link to="#" className="transition hover:text-white" aria-label="Facebook">
+              <Facebook size={20} />
+            </Link>
+            <Link to="#" className="transition hover:text-white" aria-label="Instagram">
+              <Instagram size={20} />
+            </Link>
           </div>
         </div>
       </div>

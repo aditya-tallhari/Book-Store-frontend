@@ -26,6 +26,8 @@ import Contact from './pages/Contact';
 import AdminDashboard from './pages/AdminDashboard';
 import ManageBooks from './pages/ManageBooks';
 import Analytics from './pages/Analytics';
+import MyLibrary from './pages/MyLibrary';
+import ReadBook from './pages/ReadBook';
 
 
 // A layout wrapper for routes that need Navbar + Footer
@@ -73,6 +75,8 @@ const App = () => {
           {role === 'admin' && <Route path="/profile/add-book" element={<AddBook />} />}
           {role === 'admin' && <Route path="/profile/manage-books" element={<ManageBooks />} />}
           {role === 'admin' && <Route path="/profile/analytics" element={<Analytics />} />}
+          <Route path="/profile/my-library" element={<MyLibrary />} />
+          <Route path="/profile/read/:bookId" element={<ReadBook />} />
           <Route path="/profile/orderHistory" element={<Orderhistory />} />
           <Route path="/profile/settings" element={<Setting />} />
         </Route>

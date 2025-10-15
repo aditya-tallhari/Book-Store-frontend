@@ -1,4 +1,3 @@
-// src/store/auth.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const storedAuth = JSON.parse(localStorage.getItem("auth")) || {
@@ -29,11 +28,8 @@ const authSlice = createSlice({
       state.id = null;
       state.role = "user";
       state.token = null;
-      // Remove all auth-related keys from localStorage
+      // Remove the single auth object from localStorage
       localStorage.removeItem("auth");
-      localStorage.removeItem("id");
-      localStorage.removeItem("role");
-      localStorage.removeItem("token");
     },
     changeRole(state, action) {
       const role = action.payload;
@@ -46,3 +42,4 @@ const authSlice = createSlice({
 
 export const authActions = authSlice.actions;
 export default authSlice.reducer;
+

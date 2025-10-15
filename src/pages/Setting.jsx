@@ -6,11 +6,22 @@ import {
   updateAddress,
   changePassword,
   deleteAccount,
-} from "../lib/api/user"; // Import API functions
-import { authActions } from "../store/auth"; // Import Redux actions
-import { Loader2, LogOut, UserCircle, Settings, History } from "lucide-react";
+} from "../lib/api/user";
+import { authActions } from "../store/auth";
+import {
+  Loader2,
+  User,
+  Mail,
+  MapPin,
+  Lock,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+  Save,
+  Trash2,
+} from "lucide-react";
 import LoaderSVG from "../components/Loader/Loader";
-import { toast } from "react-toastify"; // Import toast
+import { toast } from "react-toastify";
 
 export default function Setting() {
   const navigate = useNavigate();
@@ -29,26 +40,30 @@ export default function Setting() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [loadingPassword, setLoadingPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Delete Account State
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
-  // Fetch User Information on mount
   useEffect(() => {
+    // In Setting.jsx, update the fetchUserData function:
     const fetchUserData = async () => {
       setLoadingUser(true);
       setUserError(null);
       try {
         const data = await getUserInformation();
-        setUserData(data);
-        setAddress(data.address || ""); // Set initial address
+        // Check if data has a user property and use that instead
+        const userData = data.user || data;
+        setUserData(userData);
+        setAddress(userData.address || "");
       } catch (err) {
         console.error("Error fetching user data:", err);
         const errorMessage = err.message || "Failed to load user information.";
         setUserError(errorMessage);
         toast.error(errorMessage);
-        // If unauthorized, redirect to login
         if (err.response?.status === 401) {
           dispatch(authActions.logout());
           navigate("/login");
@@ -61,7 +76,6 @@ export default function Setting() {
     fetchUserData();
   }, [dispatch, navigate]);
 
-  // Handle Address Update
   const handleAddressUpdate = async (e) => {
     e.preventDefault();
     setLoadingAddress(true);
@@ -77,7 +91,6 @@ export default function Setting() {
     }
   };
 
-  // Handle Password Change
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setLoadingPassword(true);
@@ -108,7 +121,6 @@ export default function Setting() {
     }
   };
 
-  // Handle Account Deletion
   const handleDeleteAccount = async () => {
     if (!showConfirmDelete) {
       setShowConfirmDelete(true);
@@ -119,35 +131,41 @@ export default function Setting() {
     try {
       await deleteAccount();
       toast.success("Account deleted successfully!");
-      dispatch(authActions.logout()); // Log out user locally
-      navigate("/signup"); // Redirect to signup or home page
+      dispatch(authActions.logout());
+      navigate("/signup");
     } catch (err) {
       console.error("Error deleting account:", err);
       const errorMessage = err.message || "Failed to delete account.";
       toast.error(errorMessage);
     } finally {
       setLoadingDelete(false);
-      setShowConfirmDelete(false); // Hide confirmation after attempt
+      setShowConfirmDelete(false);
     }
   };
 
   if (loadingUser) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gray-50">
         <LoaderSVG size={80} color="#6366F1" />
-        <p className="mt-4 text-lg text-gray-700 text-center">Loading user data...</p>
+        <p className="mt-4 text-lg text-gray-600">Loading your settings...</p>
       </div>
     );
   }
 
   if (userError) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md text-center">
-          <p className="text-xl text-red-600 font-semibold">{userError}</p>
+      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gray-50">
+        <div className="bg-white border border-red-200 rounded-2xl p-8 max-w-md text-center shadow-lg">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="text-red-600" size={32} />
+          </div>
+          <p className="text-xl text-gray-900 font-semibold mb-2">
+            Oops! Something went wrong
+          </p>
+          <p className="text-gray-600 mb-6">{userError}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
           >
             Try Again
           </button>
@@ -158,8 +176,8 @@ export default function Setting() {
 
   if (!userData) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 max-w-md text-center">
+      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-screen bg-gray-50">
+        <div className="bg-white rounded-2xl p-8 max-w-md text-center shadow-lg">
           <p className="text-xl text-gray-700">User data not found.</p>
         </div>
       </div>
@@ -167,147 +185,298 @@ export default function Setting() {
   }
 
   return (
-    <section className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen py-8 md:py-16 px-4 sm:px-6 lg:px-8 font-inter">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8 md:p-10">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-8 text-center">Account Settings</h1>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
+          <p className="text-gray-600 mt-2">
+            Manage your account preferences and security
+          </p>
+        </div>
 
-        {/* Profile Information Section */}
-        <div className="mb-10 p-6 bg-gray-50 rounded-xl border border-gray-200 shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <UserCircle size={24} className="text-indigo-500" /> Profile Information
-          </h2>
-          <div className="space-y-3 text-gray-700">
-            <p><span className="font-semibold">Username:</span> {userData.username}</p>
-            <p><span className="font-semibold">Email:</span> {userData.email}</p>
-            {userData.avatar && (
-              <div className="flex items-center gap-4">
-                <span className="font-semibold">Avatar:</span>
-                <img src={userData.avatar} alt="User Avatar" className="w-16 h-16 rounded-full object-cover border border-gray-300 shadow-sm" />
+        <div className="space-y-6">
+          {/* Profile Card */}
+          <div className="bg-white rounded-2xl shadow-sm  overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 h-24"></div>
+            <div className="px-6 pb-6">
+              <div className="flex items-end space-x-5 -mt-12">
+                <div className="relative">
+                  {userData.avatar ? (
+                    <img
+                      src={userData.avatar}
+                      alt="Avatar"
+                      className="w-24 h-24 rounded-2xl  object-cover shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-24 h-24  border-4  flex items-center justify-center shadow-lg">
+                      <User className="text-indigo-600" size={40} />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 pt-15">
+                  <h2 className="text-2xl font-bold text-gray-900 truncate">
+                    {userData.username}
+                  </h2>
+                  <p className="text-gray-500 flex items-center gap-2 mt-1">
+                    <Mail size={16} />
+                    {userData.email}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Address Section */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                <MapPin className="text-indigo-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Delivery Address
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Update your default shipping address
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleAddressUpdate} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="address"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Address
+                </label>
+                <textarea
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"
+                  placeholder="Enter your complete address"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loadingAddress}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingAddress ? (
+                  <>
+                    <Loader2 className="animate-spin" size={20} />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save size={20} />
+                    Save Address
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Password Section */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <Lock className="text-purple-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Change Password
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Keep your account secure
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="oldPassword"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Current Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showOldPassword ? "text" : "password"}
+                    id="oldPassword"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                    placeholder="Enter current password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOldPassword(!showOldPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showOldPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="newPassword"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      id="newPassword"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                      placeholder="Enter new password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showNewPassword ? (
+                        <EyeOff size={20} />
+                      ) : (
+                        <Eye size={20} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="confirmNewPassword"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      id="confirmNewPassword"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                      placeholder="Confirm new password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={20} />
+                      ) : (
+                        <Eye size={20} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loadingPassword}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingPassword ? (
+                  <>
+                    <Loader2 className="animate-spin" size={20} />
+                    Changing...
+                  </>
+                ) : (
+                  <>
+                    <Lock size={20} />
+                    Update Password
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Danger Zone */}
+          <div className="bg-white rounded-2xl shadow-sm border border-red-200 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                <AlertTriangle className="text-red-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Danger Zone
+                </h3>
+                <p className="text-sm text-gray-500">Irreversible actions</p>
+              </div>
+            </div>
+
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+              <p className="text-sm text-red-800">
+                <strong>Warning:</strong> Deleting your account will permanently
+                remove all your data, including orders, favorites, and personal
+                information. This action cannot be undone.
+              </p>
+            </div>
+
+            {!showConfirmDelete ? (
+              <button
+                onClick={handleDeleteAccount}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all"
+              >
+                <Trash2 size={20} />
+                Delete My Account
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-gray-900">
+                  Are you absolutely sure? This cannot be undone.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={loadingDelete}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-700 text-white font-medium rounded-xl hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all disabled:opacity-50"
+                  >
+                    {loadingDelete ? (
+                      <>
+                        <Loader2 className="animate-spin" size={20} />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 size={20} />
+                        Yes, Delete Forever
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowConfirmDelete(false)}
+                    disabled={loadingDelete}
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
-
-        {/* Update Address Section */}
-        <div className="mb-10 p-6 bg-white rounded-xl border border-gray-200 shadow-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Settings size={24} className="text-purple-500" /> Update Address
-          </h2>
-          <form onSubmit={handleAddressUpdate} className="space-y-4">
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Your Address</label>
-              <input
-                type="text"
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                placeholder="Enter your new address"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loadingAddress}
-              className="w-full sm:w-auto px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loadingAddress && <Loader2 className="animate-spin w-5 h-5" />}
-              {loadingAddress ? "Updating..." : "Update Address"}
-            </button>
-          </form>
-        </div>
-
-        {/* Change Password Section */}
-        <div className="mb-10 p-6 bg-white rounded-xl border border-gray-200 shadow-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <History size={24} className="text-blue-500" /> Change Password
-          </h2>
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            <div>
-              <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700 mb-1">Old Password</label>
-              <input
-                type="password"
-                id="oldPassword"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                placeholder="Enter old password"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-              <input
-                type="password"
-                id="newPassword"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                placeholder="Enter new password"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-              <input
-                type="password"
-                id="confirmNewPassword"
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                placeholder="Confirm new password"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loadingPassword}
-              className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loadingPassword && <Loader2 className="animate-spin w-5 h-5" />}
-              {loadingPassword ? "Changing..." : "Change Password"}
-            </button>
-          </form>
-        </div>
-
-        {/* Delete Account Section */}
-        <div className="p-6 bg-red-50 rounded-xl border border-red-200 shadow-md">
-          <h2 className="text-2xl font-bold text-red-800 mb-4 flex items-center gap-2">
-            <LogOut size={24} className="text-red-600" /> Delete Account
-          </h2>
-          <p className="text-red-700 mb-4">
-            Permanently delete your account and all associated data. This action cannot be undone.
-          </p>
-          {!showConfirmDelete ? (
-            <button
-              onClick={handleDeleteAccount}
-              disabled={loadingDelete}
-              className="w-full sm:w-auto px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loadingDelete && <Loader2 className="animate-spin w-5 h-5" />}
-              {loadingDelete ? "Deleting..." : "Delete Account"}
-            </button>
-          ) : (
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={handleDeleteAccount}
-                disabled={loadingDelete}
-                className="flex-1 px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-md hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {loadingDelete && <Loader2 className="animate-spin w-5 h-5" />}
-                {loadingDelete ? "Confirming..." : "Confirm Delete"}
-              </button>
-              <button
-                onClick={() => setShowConfirmDelete(false)}
-                disabled={loadingDelete}
-                className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
       </div>
-    </section>
+    </div>
   );
 }
